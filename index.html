@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4a7c59">
+    <title>KidChess</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Umami Analytics -->
+    <script defer data-website-id="YOUR_WEBSITE_ID" src="https://kidchess-umami.fly.dev/script.js"></script>
+</head>
+<body class="theme-green">
+    <div id="app">
+        <!-- Pack Selection Screen -->
+        <div id="pack-select-screen" class="screen active">
+            <div class="pack-header">
+                <div class="pack-logo">
+                    <span class="pack-logo-icon">♟</span>
+                    <span class="pack-logo-text">KidChess</span>
+                </div>
+                <p class="pack-subtitle">Выбери набор задачек!</p>
+            </div>
+            <div id="pack-grid"></div>
+            <div class="pack-footer">
+                <p>🎯 Для детей от 3 лет</p>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <!-- Header -->
+            <div id="header">
+                <button id="back-btn" aria-label="Back">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <div id="level-info">
+                    <div id="level-number">Level 1</div>
+                    <div id="puzzle-title">Mate in 1</div>
+                </div>
+                <button id="menu-btn" aria-label="Menu">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </button>
+            </div>
+
+            <!-- Board Container -->
+            <div id="board-container">
+                <div id="board"></div>
+            </div>
+
+            <!-- Hint Bubble (AI explanation) -->
+            <div id="hint-bubble" class="hidden">
+                <span class="hint-avatar">🦊</span>
+                <p id="hint-text">Подсказка появится здесь!</p>
+                <button id="hint-close">Понял!</button>
+            </div>
+
+            <!-- Controls -->
+            <div id="controls">
+                <button id="skip-btn" class="control-btn small" title="Skip">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                    </svg>
+                </button>
+                <button id="hint-btn" class="control-btn" title="Hint">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="9" r="4"/>
+                        <path d="M12 13v4"/>
+                        <path d="M9 17h6"/>
+                        <path d="M10 21h4"/>
+                        <path d="M15 5l1-2"/>
+                        <path d="M9 5L8 3"/>
+                        <path d="M18 9l2-1"/>
+                        <path d="M6 9L4 8"/>
+                    </svg>
+                </button>
+                <button id="undo-btn" class="control-btn" title="Undo">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+                    </svg>
+                </button>
+                <button id="report-btn" class="control-btn small" title="Report Error">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Progress -->
+            <div id="progress"></div>
+        </div>
+    </div>
+
+    <!-- Status Message -->
+    <div id="status-message"></div>
+
+    <!-- Menu Overlay -->
+    <div id="menu-overlay">
+        <button id="close-menu">&times;</button>
+        <button class="menu-item" data-action="restart">Restart Puzzle</button>
+        <button class="menu-item" data-action="next">Next Puzzle</button>
+        <button class="menu-item" data-action="prev">Previous Puzzle</button>
+        <button class="menu-item" data-action="random">Random Puzzle</button>
+        <button class="menu-item" data-action="packs">Change Pack</button>
+        <button class="menu-item" data-action="reset">Reset Progress</button>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">⚠️</div>
+            <h3>Ошибка в задаче?</h3>
+            <p>Опиши проблему:</p>
+            <textarea id="report-text" placeholder="Например: правильный ответ не принимается..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="Game.closeReportModal()">Отмена</button>
+                <button class="btn-primary" onclick="Game.sendReport()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/chess.min.js"></script>
+    <script src="js/sounds.js"></script>
+    <script src="js/puzzles.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
