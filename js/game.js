@@ -402,6 +402,11 @@ const Game = {
             SoundManager.playMove();
         }
 
+        // Вернуть ход белым (противник не ходит в Kids Mode)
+        const fen = this.chess.fen();
+        const newFen = fen.replace(' b ', ' w ');
+        this.chess.load(newFen);
+
         this.renderBoard();
 
         // Проверка победы (все чёрные съедены)
