@@ -1,0 +1,6 @@
+* [🏠 Главная](README.md)
+* [📊 Анализ рынка](market-analysis.md)
+* [👥 План исследования](user-research-plan.md)
+* [💰 Бизнес-модель](business-model.md)
+* [🗺️ Roadmap продукта](product-roadmap.md)
+* [📖 Playbook основателя](founder-playbook.md)
