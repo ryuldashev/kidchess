@@ -121,7 +121,7 @@ const ChessAI = {
 
     // Minimax with alpha-beta pruning
     minimax(chess, depth, alpha, beta, maximizing) {
-        if (depth === 0 || chess.isGameOver()) {
+        if (depth === 0 || chess.game_over()) {
             return this.evaluatePosition(chess);
         }
 
