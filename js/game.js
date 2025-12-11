@@ -830,7 +830,7 @@ const Game = {
             return true;
         }
 
-        if (this.chess.isDraw()) {
+        if (this.chess.in_draw()) {
             this.gameOver = true;
             document.getElementById('puzzle-title').textContent = '🤝 Ничья!';
             this.updateHintBlock('Партия закончилась вничью!', true);
