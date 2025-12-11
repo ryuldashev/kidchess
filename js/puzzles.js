@@ -10,6 +10,7 @@ const PUZZLE_PACKS = {
         description: 'Учимся ходить фигурами!',
         color: '#FF6B9D',
         isKidsMode: true,
+        fullWidth: true,
         levels: [
             // Level 1: 4x4, Ладья съедает пешку
             {
