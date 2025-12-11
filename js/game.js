@@ -66,6 +66,18 @@ const Game = {
     currentHintIndex: 0,
     completedPuzzles: {},  // { packId: Set of puzzle ids }
 
+    // AI Mode
+    isAIMode: false,
+    playerColor: 'w',
+    aiThinking: false,
+    gameOver: false,
+    aiDifficulty: 1,  // 1 = easy
+
+    // Kids Mode
+    isKidsMode: false,
+    kidsLevelIndex: 0,
+    kidsCompletedLevels: new Set(),
+
     // Инициализация
     init() {
         this.chess = new Chess();
@@ -86,6 +98,10 @@ const Game = {
                 }
                 this.currentPack = data.currentPack || null;
                 this.currentPuzzleIndex = data.currentIndex || 0;
+                // Kids Mode progress
+                if (data.kidsCompleted) {
+                    this.kidsCompletedLevels = new Set(data.kidsCompleted);
+                }
             }
         } catch (e) {
             console.warn('Could not load progress:', e);
@@ -102,7 +118,8 @@ const Game = {
             localStorage.setItem('kidChessProgress', JSON.stringify({
                 completed,
                 currentPack: this.currentPack,
-                currentIndex: this.currentPuzzleIndex
+                currentIndex: this.currentPuzzleIndex,
+                kidsCompleted: Array.from(this.kidsCompletedLevels)
             }));
         } catch (e) {
             console.warn('Could not save progress:', e);
@@ -126,6 +143,9 @@ const Game = {
 
             const card = document.createElement('div');
             card.className = 'pack-card';
+            if (pack.fullWidth) {
+                card.classList.add('full-width');
+            }
             card.dataset.packId = pack.id;
 
             // Emoji
@@ -140,18 +160,32 @@ const Game = {
             name.textContent = pack.name;
             card.appendChild(name);
 
-            // Count
+            // Count or description
             const count = document.createElement('div');
             count.className = 'pack-card-count';
-            count.textContent = completed + '/' + total + ' задач';
+            if (pack.isAIMode) {
+                count.textContent = pack.description;
+            } else if (pack.isKidsMode) {
+                const kidsCompleted = this.kidsCompletedLevels.size;
+                const kidsTotal = pack.levels ? pack.levels.length : 0;
+                count.textContent = kidsCompleted + '/' + kidsTotal + ' уровней';
+            } else {
+                count.textContent = completed + '/' + total + ' задач';
+            }
             card.appendChild(count);
 
-            // Progress bar
-            const progressBar = document.createElement('div');
-            progressBar.className = 'pack-card-progress';
-            progressBar.style.width = progress + '%';
-            progressBar.style.background = pack.color;
-            card.appendChild(progressBar);
+            // Progress bar (only for puzzles and kids mode)
+            if (!pack.isAIMode) {
+                let progressValue = progress;
+                if (pack.isKidsMode && pack.levels) {
+                    progressValue = (this.kidsCompletedLevels.size / pack.levels.length) * 100;
+                }
+                const progressBar = document.createElement('div');
+                progressBar.className = 'pack-card-progress';
+                progressBar.style.width = progressValue + '%';
+                progressBar.style.background = pack.color;
+                card.appendChild(progressBar);
+            }
 
             card.addEventListener('click', () => this.selectPack(pack.id));
             grid.appendChild(card);
@@ -162,8 +196,24 @@ const Game = {
 
     // Выбрать пак
     selectPack(packId) {
+        const pack = PUZZLE_PACKS[packId];
         this.currentPack = packId;
-        this.currentPackPuzzles = PUZZLE_PACKS[packId].puzzles;
+
+        // Проверяем AI режим
+        if (pack.isAIMode) {
+            this.startAIGame();
+            return;
+        }
+
+        // Проверяем Kids режим
+        if (pack.isKidsMode) {
+            this.startKidsMode();
+            return;
+        }
+
+        this.isAIMode = false;
+        this.isKidsMode = false;
+        this.currentPackPuzzles = pack.puzzles;
 
         if (!this.completedPuzzles[packId]) {
             this.completedPuzzles[packId] = new Set();
@@ -182,6 +232,248 @@ const Game = {
         Analytics.track('select_pack', { pack: packId });
         SoundManager.playNewGame();
     },
+
+    // Начать игру с AI
+    startAIGame() {
+        this.isAIMode = true;
+        this.playerColor = 'w';
+        this.aiThinking = false;
+        this.gameOver = false;
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        this.lastMove = null;
+
+        // Новая партия
+        this.chess.reset();
+
+        // Показать полную доску
+        this.boardBounds = { minCol: 0, maxCol: 7, minRow: 0, maxRow: 7 };
+
+        this.showScreen('game');
+        this.applyTheme('blue');
+        this.updateAIHeader();
+        this.renderBoard();
+        this.updateAIHintBlock();
+
+        Analytics.track('start_ai_game');
+        SoundManager.playNewGame();
+    },
+
+    // Обновить header для AI режима
+    updateAIHeader() {
+        document.getElementById('level-number').textContent = 'Игра с ИИ';
+        document.getElementById('puzzle-title').textContent = 'Твой ход!';
+        document.getElementById('progress').textContent = '';
+    },
+
+    // Обновить hint block для AI режима
+    updateAIHintBlock() {
+        if (this.gameOver) return;
+
+        if (this.aiThinking) {
+            this.updateHintBlock('🤔 Думаю...', true);
+        } else if (this.chess.turn() === this.playerColor) {
+            if (this.chess.isCheck()) {
+                this.updateHintBlock('⚠️ Тебе шах! Защити короля!', true);
+            } else {
+                this.updateHintBlock('Твой ход! Выбери фигуру.', false);
+            }
+        }
+    },
+
+    // === KIDS MODE ===
+
+    // Начать Kids Mode
+    startKidsMode() {
+        this.isKidsMode = true;
+        this.isAIMode = false;
+        this.gameOver = false;
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        this.lastMove = null;
+
+        // Найти первый нерешённый уровень
+        const pack = PUZZLE_PACKS.kidsmode;
+        let firstUnsolved = pack.levels.findIndex(
+            level => !this.kidsCompletedLevels.has(level.id)
+        );
+        if (firstUnsolved < 0) firstUnsolved = 0;
+
+        this.kidsLevelIndex = firstUnsolved;
+
+        this.showScreen('game');
+        this.loadKidsLevel(this.kidsLevelIndex);
+        this.saveProgress();
+
+        Analytics.track('start_kids_mode');
+        SoundManager.playNewGame();
+    },
+
+    // Загрузить уровень Kids Mode
+    loadKidsLevel(index) {
+        const pack = PUZZLE_PACKS.kidsmode;
+        const levels = pack.levels;
+
+        if (index < 0) index = levels.length - 1;
+        if (index >= levels.length) index = 0;
+
+        this.kidsLevelIndex = index;
+        const level = levels[index];
+
+        this.gameOver = false;
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        this.lastMove = null;
+
+        // Загрузить позицию
+        this.chess.load(level.fen);
+
+        // Применить розовую тему для Kids Mode
+        this.applyTheme('kids');
+
+        // Обновить UI
+        this.updateKidsHeader(level);
+        this.updateKidsProgress();
+        this.updateHintBlock(level.hint || 'Съешь все чёрные фигуры!', true);
+
+        // Вычислить границы доски и отрисовать
+        this.calculateBoardBounds();
+        this.renderBoard();
+
+        Analytics.track('load_kids_level', { level: level.id });
+    },
+
+    // Обновить header для Kids Mode
+    updateKidsHeader(level) {
+        document.getElementById('level-number').textContent = 'Уровень ' + (this.kidsLevelIndex + 1);
+        document.getElementById('puzzle-title').textContent = level.name || 'Детский режим';
+    },
+
+    // Обновить прогресс Kids Mode
+    updateKidsProgress() {
+        const pack = PUZZLE_PACKS.kidsmode;
+        const completed = this.kidsCompletedLevels.size;
+        const total = pack.levels.length;
+        document.getElementById('progress').textContent = completed + '/' + total + ' пройдено';
+    },
+
+    // Обработка клика в Kids Mode
+    handleKidsCellClick(square) {
+        if (this.gameOver) return;
+
+        const piece = this.chess.get(square);
+
+        // Выбор своей фигуры (белые)
+        if (piece && piece.color === 'w') {
+            this.selectedSquare = square;
+            this.possibleMoves = this.chess.moves({ square: square, verbose: true });
+            this.updateHighlights();
+            SoundManager.playSelect();
+            return;
+        }
+
+        // Попытка хода
+        if (this.selectedSquare) {
+            const move = this.possibleMoves.find(m => m.to === square);
+            if (move) {
+                this.makeKidsMove(move);
+                return;
+            }
+        }
+
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        this.updateHighlights();
+    },
+
+    // Выполнить ход в Kids Mode (противник не ходит!)
+    makeKidsMove(move) {
+        const isCapture = move.captured;
+        const result = this.chess.move(move);
+        if (!result) return;
+
+        this.lastMove = result;
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+
+        if (isCapture) {
+            SoundManager.playCapture();
+        } else {
+            SoundManager.playMove();
+        }
+
+        this.renderBoard();
+
+        // Проверка победы (все чёрные съедены)
+        if (this.checkKidsWin()) {
+            this.handleKidsWin();
+        }
+    },
+
+    // Проверить победу в Kids Mode (все чёрные фигуры съедены)
+    checkKidsWin() {
+        const files = 'abcdefgh';
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const square = files[col] + (8 - row);
+                const piece = this.chess.get(square);
+                if (piece && piece.color === 'b') {
+                    return false; // Ещё есть чёрные фигуры
+                }
+            }
+        }
+        return true; // Все чёрные съедены!
+    },
+
+    // Обработка победы в Kids Mode
+    handleKidsWin() {
+        this.gameOver = true;
+        const level = PUZZLE_PACKS.kidsmode.levels[this.kidsLevelIndex];
+
+        // Отметить уровень как пройденный
+        this.kidsCompletedLevels.add(level.id);
+        this.saveProgress();
+
+        document.getElementById('puzzle-title').textContent = '🎉 Молодец!';
+        this.updateHintBlock('Ты съел все фигуры! Отлично!', true);
+
+        SoundManager.playNewGame();
+
+        Analytics.track('kids_level_completed', { level: level.id });
+
+        // Переход к следующему уровню через 2 секунды
+        setTimeout(() => {
+            this.loadKidsLevel(this.kidsLevelIndex + 1);
+        }, 2000);
+    },
+
+    // Подсказка в Kids Mode — выделяем белую фигуру
+    showKidsHint() {
+        if (this.gameOver) return;
+
+        const level = PUZZLE_PACKS.kidsmode.levels[this.kidsLevelIndex];
+        this.updateHintBlock(level.hint || 'Съешь все чёрные фигуры!', true);
+
+        // Найти и выделить первую белую фигуру
+        const files = 'abcdefgh';
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const square = files[col] + (8 - row);
+                const piece = this.chess.get(square);
+                if (piece && piece.color === 'w') {
+                    const cell = document.querySelector('[data-square="' + square + '"]');
+                    if (cell) {
+                        cell.classList.add('hint-highlight');
+                        setTimeout(() => cell.classList.remove('hint-highlight'), 2000);
+                    }
+                    SoundManager.playSelect();
+                    return;
+                }
+            }
+        }
+    },
+
+    // === END KIDS MODE ===
 
     // Переключение экранов
     showScreen(screenName) {
@@ -221,7 +513,7 @@ const Game = {
         // Обновить UI
         this.updateHeader();
         this.updateProgress();
-        this.hideHintBubble();
+        this.resetHintBlock();
 
         // Вычислить границы доски и отрисовать
         this.calculateBoardBounds();
@@ -383,6 +675,19 @@ const Game = {
 
     // Обработка клика на клетку
     handleCellClick(square) {
+        // AI Mode
+        if (this.isAIMode) {
+            this.handleAICellClick(square);
+            return;
+        }
+
+        // Kids Mode
+        if (this.isKidsMode) {
+            this.handleKidsCellClick(square);
+            return;
+        }
+
+        // Puzzle Mode
         const playerColor = this.currentPuzzle.fen.includes(' w ') ? 'w' : 'b';
 
         if (this.chess.turn() !== playerColor) return;
@@ -408,6 +713,127 @@ const Game = {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.updateHighlights();
+    },
+
+    // Обработка клика в AI режиме
+    handleAICellClick(square) {
+        if (this.gameOver || this.aiThinking) return;
+        if (this.chess.turn() !== this.playerColor) return;
+
+        const piece = this.chess.get(square);
+
+        // Выбор своей фигуры
+        if (piece && piece.color === this.playerColor) {
+            this.selectedSquare = square;
+            this.possibleMoves = this.chess.moves({ square: square, verbose: true });
+            this.updateHighlights();
+            SoundManager.playSelect();
+            return;
+        }
+
+        // Попытка хода
+        if (this.selectedSquare) {
+            const move = this.possibleMoves.find(m => m.to === square);
+            if (move) {
+                this.makeAIGameMove(move);
+                return;
+            }
+        }
+
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        this.updateHighlights();
+    },
+
+    // Ход игрока в AI режиме
+    async makeAIGameMove(move) {
+        const isCapture = move.captured;
+        const result = this.chess.move(move);
+        if (!result) return;
+
+        this.lastMove = result;
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+
+        if (isCapture) {
+            SoundManager.playCapture();
+        } else {
+            SoundManager.playMove();
+        }
+
+        this.renderBoard();
+
+        // Проверка окончания игры
+        if (this.checkGameOver()) return;
+
+        // Ход AI
+        await this.makeAIMove();
+    },
+
+    // Ход AI
+    async makeAIMove() {
+        this.aiThinking = true;
+        this.updateAIHintBlock();
+        document.getElementById('puzzle-title').textContent = 'ИИ думает...';
+
+        const move = await ChessAI.getMoveAsync(this.chess, this.aiDifficulty);
+
+        if (move) {
+            const isCapture = move.captured;
+            const result = this.chess.move(move);
+
+            if (result) {
+                this.lastMove = result;
+
+                if (isCapture) {
+                    SoundManager.playCapture();
+                } else {
+                    SoundManager.playMove();
+                }
+
+                this.renderBoard();
+            }
+        }
+
+        this.aiThinking = false;
+
+        // Проверка окончания игры
+        if (!this.checkGameOver()) {
+            document.getElementById('puzzle-title').textContent = 'Твой ход!';
+            this.updateAIHintBlock();
+        }
+    },
+
+    // Проверить окончание игры
+    checkGameOver() {
+        if (this.chess.isCheckmate()) {
+            this.gameOver = true;
+            const winner = this.chess.turn() === this.playerColor ? 'ИИ' : 'Ты';
+            const isPlayerWin = winner === 'Ты';
+
+            document.getElementById('puzzle-title').textContent = isPlayerWin ? '🎉 Победа!' : '😔 Мат';
+            this.updateHintBlock(isPlayerWin ? 'Молодец! Ты победил!' : 'ИИ поставил мат. Попробуй ещё!', true);
+
+            if (isPlayerWin) {
+                SoundManager.playNewGame();
+                this.playVictoryAnimation();
+            } else {
+                SoundManager.playError();
+            }
+
+            Analytics.track('ai_game_end', { winner: winner });
+            return true;
+        }
+
+        if (this.chess.isDraw()) {
+            this.gameOver = true;
+            document.getElementById('puzzle-title').textContent = '🤝 Ничья!';
+            this.updateHintBlock('Партия закончилась вничью!', true);
+            Analytics.track('ai_game_end', { winner: 'draw' });
+            return true;
+        }
+
+        return false;
     },
 
     // Сделать ход
@@ -549,25 +975,35 @@ const Game = {
         }
     },
 
-    // Показать AI подсказку
+    // Показать AI подсказку (клик по hint-block)
     showHint() {
+        // AI режим — подсказываем лучший ход
+        if (this.isAIMode) {
+            this.showAIHint();
+            return;
+        }
+
+        // Kids режим — показываем подсказку уровня и выделяем фигуру
+        if (this.isKidsMode) {
+            this.showKidsHint();
+            return;
+        }
+
         if (this.solutionIndex >= this.currentPuzzle.solution.length) return;
+
+        const hintBlock = document.getElementById('hint-block');
+
+        // Если подсказка уже показана — выделить фигуру
+        if (hintBlock.classList.contains('expanded')) {
+            this.highlightHintPiece();
+            return;
+        }
 
         // Показываем AI подсказку из предгенерированных
         if (this.currentPuzzle.hints && this.currentPuzzle.hints.length > 0) {
             const hint = this.currentPuzzle.hints[this.currentHintIndex];
-            this.showHintBubble(hint);
+            this.updateHintBlock(hint, true);
             this.currentHintIndex = (this.currentHintIndex + 1) % this.currentPuzzle.hints.length;
-        }
-
-        // Также подсветим клетку с фигурой
-        const nextMove = this.currentPuzzle.solution[this.solutionIndex];
-        const from = nextMove.substring(0, 2);
-
-        const fromCell = document.querySelector('[data-square="' + from + '"]');
-        if (fromCell) {
-            fromCell.classList.add('hint-highlight');
-            setTimeout(() => fromCell.classList.remove('hint-highlight'), 1000);
         }
 
         this.hintsUsed++;
@@ -580,17 +1016,61 @@ const Game = {
         });
     },
 
-    // Показать bubble с подсказкой
-    showHintBubble(text) {
-        const bubble = document.getElementById('hint-bubble');
-        const textEl = document.getElementById('hint-text');
-        textEl.textContent = text;
-        bubble.classList.remove('hidden');
+    // Подсказка в AI режиме
+    async showAIHint() {
+        if (this.gameOver || this.aiThinking) return;
+        if (this.chess.turn() !== this.playerColor) return;
+
+        this.updateHintBlock('🔍 Ищу лучший ход...', true);
+
+        // Используем AI чтобы найти лучший ход для игрока
+        const bestMove = await ChessAI.getMoveAsync(this.chess, 2);
+
+        if (bestMove) {
+            const fromCell = document.querySelector('[data-square="' + bestMove.from + '"]');
+            if (fromCell) {
+                fromCell.classList.add('hint-highlight');
+                setTimeout(() => fromCell.classList.remove('hint-highlight'), 2000);
+            }
+            this.updateHintBlock('💡 Попробуй походить этой фигурой!', true);
+        }
+
+        SoundManager.playSelect();
+        Analytics.track('ai_hint_used');
     },
 
-    // Скрыть bubble
-    hideHintBubble() {
-        document.getElementById('hint-bubble').classList.add('hidden');
+    // Подсветить фигуру для хода
+    highlightHintPiece() {
+        const nextMove = this.currentPuzzle.solution[this.solutionIndex];
+        if (!nextMove) return;
+
+        const from = nextMove.substring(0, 2);
+        const fromCell = document.querySelector('[data-square="' + from + '"]');
+        if (fromCell) {
+            fromCell.classList.add('hint-highlight');
+            setTimeout(() => fromCell.classList.remove('hint-highlight'), 1500);
+        }
+        SoundManager.playSelect();
+    },
+
+    // Обновить блок подсказки
+    updateHintBlock(text, expanded) {
+        const hintBlock = document.getElementById('hint-block');
+        const textEl = document.getElementById('hint-text');
+        textEl.textContent = text;
+
+        if (expanded) {
+            hintBlock.classList.add('expanded');
+            hintBlock.classList.remove('collapsed');
+        } else {
+            hintBlock.classList.remove('expanded');
+            hintBlock.classList.add('collapsed');
+        }
+    },
+
+    // Сбросить подсказку на дефолт
+    resetHintBlock() {
+        this.updateHintBlock('Нажми на меня для подсказки!', false);
     },
 
     // Пропустить puzzle
@@ -604,6 +1084,26 @@ const Game = {
 
     // Отмена хода
     undoMove() {
+        if (this.isAIMode) {
+            // В AI режиме отменяем 2 хода (свой + AI)
+            if (this.gameOver) {
+                this.startAIGame();
+                return;
+            }
+            this.chess.undo(); // AI move
+            this.chess.undo(); // Player move
+            this.lastMove = null;
+            this.renderBoard();
+            this.updateAIHintBlock();
+            SoundManager.playUndo();
+            return;
+        }
+        if (this.isKidsMode) {
+            // В Kids режиме — перезагружаем уровень
+            this.loadKidsLevel(this.kidsLevelIndex);
+            SoundManager.playUndo();
+            return;
+        }
         this.loadPuzzle(this.currentPuzzleIndex);
         SoundManager.playUndo();
     },
@@ -715,6 +1215,46 @@ const Game = {
     handleMenuAction(action) {
         this.toggleMenu(false);
 
+        // AI режим
+        if (this.isAIMode) {
+            switch (action) {
+                case 'restart':
+                    this.startAIGame();
+                    break;
+                case 'packs':
+                    this.goBack();
+                    break;
+            }
+            return;
+        }
+
+        // Kids режим
+        if (this.isKidsMode) {
+            switch (action) {
+                case 'restart':
+                    this.loadKidsLevel(this.kidsLevelIndex);
+                    break;
+                case 'next':
+                    this.loadKidsLevel(this.kidsLevelIndex + 1);
+                    break;
+                case 'prev':
+                    this.loadKidsLevel(this.kidsLevelIndex - 1);
+                    break;
+                case 'packs':
+                    this.goBack();
+                    break;
+                case 'reset':
+                    this.kidsCompletedLevels.clear();
+                    this.kidsLevelIndex = 0;
+                    this.saveProgress();
+                    this.loadKidsLevel(0);
+                    this.showStatus('Прогресс сброшен', '');
+                    break;
+            }
+            return;
+        }
+
+        // Puzzle режим
         switch (action) {
             case 'restart':
                 this.loadPuzzle(this.currentPuzzleIndex);
@@ -767,11 +1307,6 @@ const Game = {
             self.skipPuzzle();
         });
 
-        // Подсказка
-        document.getElementById('hint-btn').addEventListener('click', function() {
-            self.showHint();
-        });
-
         // Отмена
         document.getElementById('undo-btn').addEventListener('click', function() {
             self.undoMove();
@@ -782,9 +1317,9 @@ const Game = {
             self.openReportModal();
         });
 
-        // Закрыть hint bubble
-        document.getElementById('hint-close').addEventListener('click', function() {
-            self.hideHintBubble();
+        // Клик по hint-block — показать подсказку или выделить фигуру
+        document.getElementById('hint-block').addEventListener('click', function() {
+            self.showHint();
         });
 
         // Меню
@@ -815,7 +1350,6 @@ const Game = {
             if (e.key === 'Escape') {
                 self.toggleMenu(false);
                 self.closeReportModal();
-                self.hideHintBubble();
             } else if (e.key === 'ArrowRight') {
                 self.loadPuzzle(self.currentPuzzleIndex + 1);
             } else if (e.key === 'ArrowLeft') {
