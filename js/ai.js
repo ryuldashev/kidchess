@@ -78,10 +78,10 @@ const ChessAI = {
 
     // Evaluate position (positive = white better, negative = black better)
     evaluatePosition(chess) {
-        if (chess.isCheckmate()) {
+        if (chess.in_checkmate()) {
             return chess.turn() === 'w' ? -100000 : 100000;
         }
-        if (chess.isDraw()) {
+        if (chess.in_draw()) {
             return 0;
         }
 
