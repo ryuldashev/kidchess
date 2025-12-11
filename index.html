@@ -2,6 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // Redirect /research to Docsify (Cloudflare SPA workaround)
+        if (location.pathname.startsWith('/research')) {
+            location.replace('/research/index.html' + location.hash);
+        }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -9,7 +15,7 @@
     <title>KidChess</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Umami Analytics -->
-    <script defer data-website-id="YOUR_WEBSITE_ID" src="https://kidchess-umami.fly.dev/script.js"></script>
+    <script defer data-website-id="3af78e55-bbbb-4f55-aba0-0eb505508fcc" src="https://kidchess-umami.fly.dev/script.js"></script>
 </head>
 <body class="theme-green">
     <div id="app">
@@ -38,8 +44,11 @@
                     </svg>
                 </button>
                 <div id="level-info">
-                    <div id="level-number">Level 1</div>
-                    <div id="puzzle-title">Mate in 1</div>
+                    <div id="level-top">
+                        <span id="level-number">Задача 1</span>
+                        <span id="progress">0/20</span>
+                    </div>
+                    <div id="puzzle-title">Мат в 1 ход</div>
                 </div>
                 <button id="menu-btn" aria-label="Menu">
                     <span class="dot"></span>
@@ -59,30 +68,17 @@
                 <div id="board"></div>
             </div>
 
-            <!-- Hint Bubble (AI explanation) -->
-            <div id="hint-bubble" class="hidden">
+            <!-- Hint Block (under board, always visible) -->
+            <div id="hint-block">
                 <span class="hint-avatar">🦊</span>
-                <p id="hint-text">Подсказка появится здесь!</p>
-                <button id="hint-close">Понял!</button>
+                <p id="hint-text">Нажми на меня для подсказки!</p>
             </div>
 
             <!-- Controls -->
             <div id="controls">
-                <button id="skip-btn" class="control-btn small" title="Skip">
+                <button id="skip-btn" class="control-btn" title="Skip">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                    </svg>
-                </button>
-                <button id="hint-btn" class="control-btn" title="Hint">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="9" r="4"/>
-                        <path d="M12 13v4"/>
-                        <path d="M9 17h6"/>
-                        <path d="M10 21h4"/>
-                        <path d="M15 5l1-2"/>
-                        <path d="M9 5L8 3"/>
-                        <path d="M18 9l2-1"/>
-                        <path d="M6 9L4 8"/>
                     </svg>
                 </button>
                 <button id="undo-btn" class="control-btn" title="Undo">
@@ -90,15 +86,13 @@
                         <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
                     </svg>
                 </button>
-                <button id="report-btn" class="control-btn small" title="Report Error">
+                <button id="report-btn" class="control-btn" title="Report Error">
                     <svg viewBox="0 0 24 24">
                         <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Progress -->
-            <div id="progress"></div>
         </div>
     </div>
 
@@ -130,9 +124,32 @@
         </div>
     </div>
 
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content result-modal">
+            <div id="result-icon" class="result-icon">🎉</div>
+            <h2 id="result-title">Победа!</h2>
+            <div id="result-stats" class="result-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-moves">0</span>
+                    <span class="stat-label">ходов</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-captures">0</span>
+                    <span class="stat-label">взятий</span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="Game.goBack()">К выбору</button>
+                <button class="btn-primary" onclick="Game.restartAIGame()">Ещё раз</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/chess.min.js"></script>
     <script src="js/sounds.js"></script>
     <script src="js/puzzles.js"></script>
+    <script src="js/ai.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>
