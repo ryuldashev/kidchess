@@ -273,7 +273,7 @@ const Game = {
         if (this.aiThinking) {
             this.updateHintBlock('🤔 Думаю...', true);
         } else if (this.chess.turn() === this.playerColor) {
-            if (this.chess.isCheck()) {
+            if (this.chess.in_check()) {
                 this.updateHintBlock('⚠️ Тебе шах! Защити короля!', true);
             } else {
                 this.updateHintBlock('Твой ход! Выбери фигуру.', false);
@@ -811,7 +811,7 @@ const Game = {
 
     // Проверить окончание игры
     checkGameOver() {
-        if (this.chess.isCheckmate()) {
+        if (this.chess.in_checkmate()) {
             this.gameOver = true;
             const winner = this.chess.turn() === this.playerColor ? 'ИИ' : 'Ты';
             const isPlayerWin = winner === 'Ты';
