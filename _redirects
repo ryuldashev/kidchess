@@ -1,0 +1,4 @@
+# Research docs - serve Docsify
+/research  /research/index.html  200
+/research/  /research/index.html  200
+/research/*  /research/index.html  200
