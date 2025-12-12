@@ -72,11 +72,14 @@ const Game = {
     aiThinking: false,
     gameOver: false,
     aiDifficulty: 1,  // 1 = easy
+    aiMoveCount: 0,
+    aiCaptureCount: 0,
 
     // Kids Mode
     isKidsMode: false,
     kidsLevelIndex: 0,
     kidsCompletedLevels: new Set(),
+    kidsGamesPlayed: 0,  // Счётчик сыгранных игр для 4x4 доски
 
     // Инициализация
     init() {
@@ -102,6 +105,9 @@ const Game = {
                 if (data.kidsCompleted) {
                     this.kidsCompletedLevels = new Set(data.kidsCompleted);
                 }
+                if (data.kidsGamesPlayed !== undefined) {
+                    this.kidsGamesPlayed = data.kidsGamesPlayed;
+                }
             }
         } catch (e) {
             console.warn('Could not load progress:', e);
@@ -119,7 +125,8 @@ const Game = {
                 completed,
                 currentPack: this.currentPack,
                 currentIndex: this.currentPuzzleIndex,
-                kidsCompleted: Array.from(this.kidsCompletedLevels)
+                kidsCompleted: Array.from(this.kidsCompletedLevels),
+                kidsGamesPlayed: this.kidsGamesPlayed
             }));
         } catch (e) {
             console.warn('Could not save progress:', e);
@@ -242,6 +249,11 @@ const Game = {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.lastMove = null;
+        this.aiMoveCount = 0;
+        this.aiCaptureCount = 0;
+
+        // Закрыть модалку результата если открыта
+        this.closeResultModal();
 
         // Новая партия
         this.chess.reset();
@@ -354,7 +366,13 @@ const Game = {
         const pack = PUZZLE_PACKS.kidsmode;
         const completed = this.kidsCompletedLevels.size;
         const total = pack.levels.length;
-        document.getElementById('progress').textContent = completed + '/' + total + ' пройдено';
+        // Показываем режим доски: 4x4 для первых 10 игр
+        if (this.kidsGamesPlayed < 10) {
+            const remaining = 10 - this.kidsGamesPlayed;
+            document.getElementById('progress').textContent = '4×4 доска • ещё ' + remaining + ' игр';
+        } else {
+            document.getElementById('progress').textContent = completed + '/' + total + ' пройдено';
+        }
     },
 
     // Обработка клика в Kids Mode
@@ -435,8 +453,9 @@ const Game = {
         this.gameOver = true;
         const level = PUZZLE_PACKS.kidsmode.levels[this.kidsLevelIndex];
 
-        // Отметить уровень как пройденный
+        // Отметить уровень как пройденный и увеличить счётчик игр
         this.kidsCompletedLevels.add(level.id);
+        this.kidsGamesPlayed++;
         this.saveProgress();
 
         document.getElementById('puzzle-title').textContent = '🎉 Молодец!';
@@ -563,14 +582,36 @@ const Game = {
         minRow = Math.max(0, minRow - 1);
         maxRow = Math.min(7, maxRow + 1);
 
-        // Минимум 4x4 доска
-        while (maxCol - minCol < 3) {
-            if (minCol > 0) minCol--;
-            else if (maxCol < 7) maxCol++;
-        }
-        while (maxRow - minRow < 3) {
-            if (minRow > 0) minRow--;
-            else if (maxRow < 7) maxRow++;
+        // Kids Mode: первые 10 игр — принудительно 4x4
+        if (this.isKidsMode && this.kidsGamesPlayed < 10) {
+            // Центрируем 4x4 вокруг фигур
+            const centerCol = Math.floor((minCol + maxCol) / 2);
+            const centerRow = Math.floor((minRow + maxRow) / 2);
+
+            // Вычисляем границы 4x4 с центром близким к фигурам
+            minCol = Math.max(0, centerCol - 1);
+            maxCol = minCol + 3;
+            if (maxCol > 7) {
+                maxCol = 7;
+                minCol = 4;
+            }
+
+            minRow = Math.max(0, centerRow - 1);
+            maxRow = minRow + 3;
+            if (maxRow > 7) {
+                maxRow = 7;
+                minRow = 4;
+            }
+        } else {
+            // Обычная логика: минимум 4x4 доска
+            while (maxCol - minCol < 3) {
+                if (minCol > 0) minCol--;
+                else if (maxCol < 7) maxCol++;
+            }
+            while (maxRow - minRow < 3) {
+                if (minRow > 0) minRow--;
+                else if (maxRow < 7) maxRow++;
+            }
         }
 
         this.boardBounds = { minCol, maxCol, minRow, maxRow };
@@ -756,6 +797,10 @@ const Game = {
         const result = this.chess.move(move);
         if (!result) return;
 
+        // Счётчики статистики
+        this.aiMoveCount++;
+        if (isCapture) this.aiCaptureCount++;
+
         this.lastMove = result;
         this.selectedSquare = null;
         this.possibleMoves = [];
@@ -817,7 +862,6 @@ const Game = {
             const isPlayerWin = winner === 'Ты';
 
             document.getElementById('puzzle-title').textContent = isPlayerWin ? '🎉 Победа!' : '😔 Мат';
-            this.updateHintBlock(isPlayerWin ? 'Молодец! Ты победил!' : 'ИИ поставил мат. Попробуй ещё!', true);
 
             if (isPlayerWin) {
                 SoundManager.playNewGame();
@@ -826,6 +870,11 @@ const Game = {
                 SoundManager.playError();
             }
 
+            // Показать модалку результата с задержкой
+            setTimeout(() => {
+                this.showResultModal(isPlayerWin ? 'win' : 'lose');
+            }, 800);
+
             Analytics.track('ai_game_end', { winner: winner });
             return true;
         }
@@ -833,7 +882,12 @@ const Game = {
         if (this.chess.in_draw()) {
             this.gameOver = true;
             document.getElementById('puzzle-title').textContent = '🤝 Ничья!';
-            this.updateHintBlock('Партия закончилась вничью!', true);
+
+            // Показать модалку результата с задержкой
+            setTimeout(() => {
+                this.showResultModal('draw');
+            }, 800);
+
             Analytics.track('ai_game_end', { winner: 'draw' });
             return true;
         }
@@ -1163,6 +1217,44 @@ const Game = {
         this.closeReportModal();
     },
 
+    // Показать модалку результата AI-игры
+    showResultModal(result) {
+        const modal = document.getElementById('result-modal');
+        const icon = document.getElementById('result-icon');
+        const title = document.getElementById('result-title');
+        const movesEl = document.getElementById('stat-moves');
+        const capturesEl = document.getElementById('stat-captures');
+
+        // Настроить содержимое по результату
+        if (result === 'win') {
+            icon.textContent = '🎉';
+            title.textContent = 'Победа!';
+        } else if (result === 'lose') {
+            icon.textContent = '😔';
+            title.textContent = 'Поражение';
+        } else {
+            icon.textContent = '🤝';
+            title.textContent = 'Ничья!';
+        }
+
+        // Заполнить статистику
+        movesEl.textContent = this.aiMoveCount;
+        capturesEl.textContent = this.aiCaptureCount;
+
+        modal.classList.add('visible');
+    },
+
+    // Закрыть модалку результата
+    closeResultModal() {
+        document.getElementById('result-modal').classList.remove('visible');
+    },
+
+    // Начать AI-игру заново
+    restartAIGame() {
+        this.closeResultModal();
+        this.startAIGame();
+    },
+
     // Применить цветовую тему
     applyTheme(theme) {
         document.body.className = 'theme-' + (theme || 'green');
@@ -1250,6 +1342,7 @@ const Game = {
                     break;
                 case 'reset':
                     this.kidsCompletedLevels.clear();
+                    this.kidsGamesPlayed = 0;  // Сбросить счётчик игр
                     this.kidsLevelIndex = 0;
                     this.saveProgress();
                     this.loadKidsLevel(0);
@@ -1355,6 +1448,7 @@ const Game = {
             if (e.key === 'Escape') {
                 self.toggleMenu(false);
                 self.closeReportModal();
+                self.closeResultModal();
             } else if (e.key === 'ArrowRight') {
                 self.loadPuzzle(self.currentPuzzleIndex + 1);
             } else if (e.key === 'ArrowLeft') {
