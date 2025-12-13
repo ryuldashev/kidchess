@@ -91,7 +91,7 @@ body.theme-kids { --bg-color: #c06090; }
 #pack-select-screen {
     justify-content: flex-start;
     align-items: center;
-    padding-top: 40px;
+    /* padding-top: 40px; */
 }
 
 .pack-header {
@@ -104,17 +104,19 @@ body.theme-kids { --bg-color: #c06090; }
     align-items: center;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
 }
 
 .pack-logo-icon {
     font-size: 48px;
+    font-weight: 900;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+    color: var(--text-primary);
 }
 
 .pack-logo-text {
     font-size: 36px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-primary);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -186,6 +188,24 @@ body.theme-kids { --bg-color: #c06090; }
     grid-column: span 2;
 }
 
+/* Disabled pack cards (premium/locked) */
+.pack-card.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(30%);
+    position: relative;
+}
+
+.pack-card.disabled::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    opacity: 0.8;
+}
+
 .pack-footer {
     margin-top: auto;
     padding: 20px;
@@ -201,6 +221,7 @@ body.theme-kids { --bg-color: #c06090; }
 #game-screen {
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 /* ========== HEADER ========== */
@@ -535,6 +556,11 @@ body.theme-kids { --bg-color: #c06090; }
     height: 28px;
 }
 
+.control-btn .btn-emoji {
+    font-size: 24px;
+    line-height: 1;
+}
+
 /* Кнопка подсказки */
 #hint-btn svg {
     stroke: #333;
@@ -599,6 +625,184 @@ body.theme-kids { --bg-color: #c06090; }
 #hint-block.collapsed #hint-text {
     color: #666;
     font-style: italic;
+}
+
+/* ========== SPEECH BUBBLE HINTS (Kids Mode) ========== */
+#hint-block.speech-mode {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    gap: 0;
+    align-items: flex-end;
+    justify-content: flex-start;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    animation: floatDrift 3s ease-in-out infinite;
+}
+
+#hint-block.speech-mode .hint-avatar {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FF9966, #FF5E62);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0;
+    margin-bottom: 6px;
+    align-self: flex-end;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+#hint-block.speech-mode #hint-text {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 10px 16px 0;
+    border-radius: 18px;
+    /* border-bottom-left-radius: 4px; */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin-left: 16px;
+    animation: speechBubbleIn 0.4s ease-out;
+}
+
+/* Хвостик бабла — простой треугольник */
+#hint-block.speech-mode #hint-text::before {
+    content: '';
+    position: absolute;
+    left: -9px;
+    bottom: 17px;
+    width: 0;
+    height: 0;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-right: 9px solid rgba(255, 255, 255, 0.85);
+}
+
+.hint-symbol {
+    font-family: 'Noto Sans Symbols 2', sans-serif;
+    font-size: 42px;
+    font-weight: 400;
+    color: #333;
+    line-height: 1;
+}
+
+/* Символ фигуры */
+.hint-symbol.piece {
+    font-size: 42px;
+    filter: none;
+}
+
+/* Стрелки — легче */
+.hint-symbol.direction {
+    /* font-weight: 300; */
+    font-size: 32px;
+    line-height: 27px;
+    color: #555;
+}
+
+/* Крестик */
+.hint-symbol.action {
+    color: #333;
+}
+
+@keyframes speechBubbleIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px) scale(0.8);
+    }
+    60% {
+        transform: translateX(4px) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes floatDrift {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* ========== WIN MODE (Kids Victory) ========== */
+#hint-block.win-mode {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    max-width: none;
+    justify-content: flex-start;
+    overflow: visible;
+    animation: winPulse 0.6s ease-out, floatDrift 3s ease-in-out infinite 0.6s;
+}
+
+#hint-block.win-mode #hint-text {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 12px 20px 0;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.win-emoji {
+    font-size: 44px;
+    animation: winBounce 0.5s ease-out backwards;
+}
+
+.win-emoji:nth-child(1) { animation-delay: 0s; }
+.win-emoji:nth-child(2) { animation-delay: 0.1s; }
+.win-emoji:nth-child(3) { animation-delay: 0.2s; }
+
+@keyframes winPulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes winBounce {
+    0% { transform: scale(0) rotate(-20deg); }
+    60% { transform: scale(1.3) rotate(10deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+/* Confetti */
+.confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    top: 50%;
+    animation: confettiFall linear forwards;
+    pointer-events: none;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px) rotate(720deg) scale(0);
+        opacity: 0;
+    }
 }
 
 /* ========== REPORT MODAL ========== */
@@ -696,6 +900,47 @@ body.theme-kids { --bg-color: #c06090; }
     transform: scale(0.97);
 }
 
+/* ========== RESULT MODAL ========== */
+.result-modal {
+    padding: 32px 24px;
+}
+
+.result-icon {
+    font-size: 64px;
+    margin-bottom: 8px;
+}
+
+.result-modal h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--bg-color);
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #888;
+    margin-top: 4px;
+}
+
 /* ========== STATUS MESSAGES ========== */
 #status-message {
     position: fixed;
@@ -751,17 +996,27 @@ body.theme-kids { --bg-color: #c06090; }
     background: white;
     color: #333;
     border: none;
-    padding: 16px 48px;
-    border-radius: 12px;
-    font-size: 18px;
+    padding: 14px 24px;
+    border-radius: 14px;
+    font-size: 17px;
     font-weight: 500;
     cursor: pointer;
     transition: transform 0.15s ease;
-    min-width: 200px;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
 }
 
 .menu-item:active {
     transform: scale(0.98);
+}
+
+.menu-icon {
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
 }
 
 #close-menu {

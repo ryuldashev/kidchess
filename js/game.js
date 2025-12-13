@@ -78,8 +78,8 @@ const Game = {
     // Kids Mode
     isKidsMode: false,
     kidsLevelIndex: 0,
-    kidsCompletedLevels: new Set(),
-    kidsGamesPlayed: 0,  // Счётчик сыгранных игр для 4x4 доски
+    kidsCompletedLevels: {},  // { packId: Set of level ids }
+    kidsEnemyMoveCounter: 0,  // счётчик для определения когда ходит противник
 
     // Инициализация
     init() {
@@ -101,12 +101,12 @@ const Game = {
                 }
                 this.currentPack = data.currentPack || null;
                 this.currentPuzzleIndex = data.currentIndex || 0;
-                // Kids Mode progress
+                // Kids Mode progress (per pack)
                 if (data.kidsCompleted) {
-                    this.kidsCompletedLevels = new Set(data.kidsCompleted);
-                }
-                if (data.kidsGamesPlayed !== undefined) {
-                    this.kidsGamesPlayed = data.kidsGamesPlayed;
+                    this.kidsCompletedLevels = {};
+                    for (const packId in data.kidsCompleted) {
+                        this.kidsCompletedLevels[packId] = new Set(data.kidsCompleted[packId]);
+                    }
                 }
             }
         } catch (e) {
@@ -121,16 +121,38 @@ const Game = {
             for (const packId in this.completedPuzzles) {
                 completed[packId] = Array.from(this.completedPuzzles[packId]);
             }
+            const kidsCompleted = {};
+            for (const packId in this.kidsCompletedLevels) {
+                kidsCompleted[packId] = Array.from(this.kidsCompletedLevels[packId]);
+            }
             localStorage.setItem('kidChessProgress', JSON.stringify({
                 completed,
                 currentPack: this.currentPack,
                 currentIndex: this.currentPuzzleIndex,
-                kidsCompleted: Array.from(this.kidsCompletedLevels),
-                kidsGamesPlayed: this.kidsGamesPlayed
+                kidsCompleted
             }));
         } catch (e) {
             console.warn('Could not save progress:', e);
         }
+    },
+
+    // Получить случайный эмодзи животного для премиум пака
+    getRandomAnimalEmoji(packId) {
+        const saved = localStorage.getItem('premiumEmojis');
+        if (saved) {
+            const emojis = JSON.parse(saved);
+            if (emojis[packId]) return emojis[packId];
+        }
+
+        const animals = ['🦊', '🐻', '🐰', '🦁', '🐼', '🐨', '🐯', '🦄', '🐸', '🦋', '🐶', '🐱'];
+        const emoji = animals[Math.floor(Math.random() * animals.length)];
+
+        // Сохраняем
+        const emojis = saved ? JSON.parse(saved) : {};
+        emojis[packId] = emoji;
+        localStorage.setItem('premiumEmojis', JSON.stringify(emojis));
+
+        return emoji;
     },
 
     // Отрисовать экран выбора паков (безопасный DOM метод)
@@ -144,21 +166,24 @@ const Game = {
 
         const packs = Object.values(PUZZLE_PACKS);
         packs.forEach(pack => {
-            const completed = this.completedPuzzles[pack.id] ? this.completedPuzzles[pack.id].size : 0;
-            const total = pack.puzzles.length;
-            const progress = total > 0 ? (completed / total) * 100 : 0;
-
             const card = document.createElement('div');
             card.className = 'pack-card';
             if (pack.fullWidth) {
                 card.classList.add('full-width');
             }
+            if (pack.isDisabled) {
+                card.classList.add('disabled');
+            }
             card.dataset.packId = pack.id;
 
-            // Emoji
+            // Emoji (генерируем для премиум паков)
             const emoji = document.createElement('span');
             emoji.className = 'pack-card-emoji';
-            emoji.textContent = pack.emoji;
+            if (pack.isPremium && !pack.emoji) {
+                emoji.textContent = this.getRandomAnimalEmoji(pack.id);
+            } else {
+                emoji.textContent = pack.emoji;
+            }
             card.appendChild(emoji);
 
             // Name
@@ -170,23 +195,25 @@ const Game = {
             // Count or description
             const count = document.createElement('div');
             count.className = 'pack-card-count';
-            if (pack.isAIMode) {
+            if (pack.isDisabled) {
+                count.textContent = 'Скоро';
+            } else if (pack.isAIMode) {
                 count.textContent = pack.description;
             } else if (pack.isKidsMode) {
-                const kidsCompleted = this.kidsCompletedLevels.size;
+                const packCompleted = this.kidsCompletedLevels[pack.id] ? this.kidsCompletedLevels[pack.id].size : 0;
                 const kidsTotal = pack.levels ? pack.levels.length : 0;
-                count.textContent = kidsCompleted + '/' + kidsTotal + ' уровней';
+                count.textContent = packCompleted + '/' + kidsTotal + ' уровней';
             } else {
+                const completed = this.completedPuzzles[pack.id] ? this.completedPuzzles[pack.id].size : 0;
+                const total = pack.puzzles.length;
                 count.textContent = completed + '/' + total + ' задач';
             }
             card.appendChild(count);
 
-            // Progress bar (only for puzzles and kids mode)
-            if (!pack.isAIMode) {
-                let progressValue = progress;
-                if (pack.isKidsMode && pack.levels) {
-                    progressValue = (this.kidsCompletedLevels.size / pack.levels.length) * 100;
-                }
+            // Progress bar (only for kids mode, not disabled)
+            if (pack.isKidsMode && !pack.isDisabled && pack.levels) {
+                const packCompleted = this.kidsCompletedLevels[pack.id] ? this.kidsCompletedLevels[pack.id].size : 0;
+                const progressValue = (packCompleted / pack.levels.length) * 100;
                 const progressBar = document.createElement('div');
                 progressBar.className = 'pack-card-progress';
                 progressBar.style.width = progressValue + '%';
@@ -194,7 +221,10 @@ const Game = {
                 card.appendChild(progressBar);
             }
 
-            card.addEventListener('click', () => this.selectPack(pack.id));
+            // Только для активных паков
+            if (!pack.isDisabled) {
+                card.addEventListener('click', () => this.selectPack(pack.id));
+            }
             grid.appendChild(card);
         });
 
@@ -278,17 +308,17 @@ const Game = {
         document.getElementById('progress').textContent = '';
     },
 
-    // Обновить hint block для AI режима
+    // Обновить hint block для AI режима (взрослый стиль)
     updateAIHintBlock() {
         if (this.gameOver) return;
 
         if (this.aiThinking) {
-            this.updateHintBlock('🤔 Думаю...', true);
+            this.updateHintBlock('Анализ...', true);
         } else if (this.chess.turn() === this.playerColor) {
             if (this.chess.in_check()) {
-                this.updateHintBlock('⚠️ Тебе шах! Защити короля!', true);
+                this.updateHintBlock('Шах. Защити короля.', true);
             } else {
-                this.updateHintBlock('Твой ход! Выбери фигуру.', false);
+                this.updateHintBlock('Твой ход.', false);
             }
         }
     },
@@ -303,11 +333,18 @@ const Game = {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.lastMove = null;
+        this.kidsEnemyMoveCounter = 0;
+
+        const pack = PUZZLE_PACKS[this.currentPack];
+
+        // Инициализировать прогресс для этого пака если нет
+        if (!this.kidsCompletedLevels[this.currentPack]) {
+            this.kidsCompletedLevels[this.currentPack] = new Set();
+        }
 
         // Найти первый нерешённый уровень
-        const pack = PUZZLE_PACKS.kidsmode;
         let firstUnsolved = pack.levels.findIndex(
-            level => !this.kidsCompletedLevels.has(level.id)
+            level => !this.kidsCompletedLevels[this.currentPack].has(level.id)
         );
         if (firstUnsolved < 0) firstUnsolved = 0;
 
@@ -317,13 +354,13 @@ const Game = {
         this.loadKidsLevel(this.kidsLevelIndex);
         this.saveProgress();
 
-        Analytics.track('start_kids_mode');
+        Analytics.track('start_kids_mode', { pack: this.currentPack });
         SoundManager.playNewGame();
     },
 
     // Загрузить уровень Kids Mode
     loadKidsLevel(index) {
-        const pack = PUZZLE_PACKS.kidsmode;
+        const pack = PUZZLE_PACKS[this.currentPack];
         const levels = pack.levels;
 
         if (index < 0) index = levels.length - 1;
@@ -336,43 +373,44 @@ const Game = {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.lastMove = null;
+        this.kidsEnemyMoveCounter = 0;
 
         // Загрузить позицию
         this.chess.load(level.fen);
 
-        // Применить розовую тему для Kids Mode
+        // Применить тему по цвету пака
         this.applyTheme('kids');
 
         // Обновить UI
-        this.updateKidsHeader(level);
+        this.updateKidsHeader(level, pack);
         this.updateKidsProgress();
-        this.updateHintBlock(level.hint || 'Съешь все чёрные фигуры!', true);
+
+        // Показать речевую подсказку для Kids Mode
+        if (level.hint) {
+            this.showSpeechHint(level.hint);
+        } else {
+            this.updateHintBlock('👆', false);
+        }
 
         // Вычислить границы доски и отрисовать
         this.calculateBoardBounds();
         this.renderBoard();
 
-        Analytics.track('load_kids_level', { level: level.id });
+        Analytics.track('load_kids_level', { pack: this.currentPack, level: level.id });
     },
 
     // Обновить header для Kids Mode
-    updateKidsHeader(level) {
-        document.getElementById('level-number').textContent = 'Уровень ' + (this.kidsLevelIndex + 1);
-        document.getElementById('puzzle-title').textContent = level.name || 'Детский режим';
+    updateKidsHeader(level, pack) {
+        document.getElementById('level-number').textContent = pack.name + ' • ' + (this.kidsLevelIndex + 1);
+        document.getElementById('puzzle-title').textContent = level.name || 'Съешь всех!';
     },
 
     // Обновить прогресс Kids Mode
     updateKidsProgress() {
-        const pack = PUZZLE_PACKS.kidsmode;
-        const completed = this.kidsCompletedLevels.size;
+        const pack = PUZZLE_PACKS[this.currentPack];
+        const completed = this.kidsCompletedLevels[this.currentPack] ? this.kidsCompletedLevels[this.currentPack].size : 0;
         const total = pack.levels.length;
-        // Показываем режим доски: 4x4 для первых 10 игр
-        if (this.kidsGamesPlayed < 10) {
-            const remaining = 10 - this.kidsGamesPlayed;
-            document.getElementById('progress').textContent = '4×4 доска • ещё ' + remaining + ' игр';
-        } else {
-            document.getElementById('progress').textContent = completed + '/' + total + ' пройдено';
-        }
+        document.getElementById('progress').textContent = completed + '/' + total + ' пройдено';
     },
 
     // Обработка клика в Kids Mode
@@ -404,7 +442,7 @@ const Game = {
         this.updateHighlights();
     },
 
-    // Выполнить ход в Kids Mode (противник не ходит!)
+    // Выполнить ход в Kids Mode
     makeKidsMove(move) {
         const isCapture = move.captured;
         const result = this.chess.move(move);
@@ -420,17 +458,104 @@ const Game = {
             SoundManager.playMove();
         }
 
-        // Вернуть ход белым (противник не ходит в Kids Mode)
+        // Проверка победы (все чёрные съедены)
+        if (this.checkKidsWin()) {
+            this.renderBoard();
+            this.handleKidsWin();
+            return;
+        }
+
+        // Логика ходов противника
+        const pack = PUZZLE_PACKS[this.currentPack];
+        const enemyMoveRate = pack.enemyMoveRate || 0;
+
+        if (enemyMoveRate > 0) {
+            this.kidsEnemyMoveCounter++;
+            // rate=1: ходит 1 из 3 (каждый 3-й ход)
+            // rate=2: ходит 2 из 3 (каждый 2-й и 3-й ход)
+            if (this.kidsEnemyMoveCounter % 3 < enemyMoveRate) {
+                // Ход противника
+                setTimeout(() => {
+                    this.makeKidsEnemyMove();
+                }, 300);
+                return;
+            }
+        }
+
+        // Вернуть ход белым если противник не ходит
+        const fen = this.chess.fen();
+        const newFen = fen.replace(' b ', ' w ');
+        this.chess.load(newFen);
+
+        this.renderBoard();
+    },
+
+    // Ход противника в Kids Mode (простой AI)
+    makeKidsEnemyMove() {
+        const moves = this.chess.moves({ verbose: true });
+        if (moves.length === 0) {
+            // Нет ходов — вернуть ход белым
+            const fen = this.chess.fen();
+            const newFen = fen.replace(' b ', ' w ');
+            this.chess.load(newFen);
+            this.renderBoard();
+            return;
+        }
+
+        // Выбираем случайный ход
+        const randomMove = moves[Math.floor(Math.random() * moves.length)];
+        const result = this.chess.move(randomMove);
+
+        if (result) {
+            this.lastMove = result;
+            if (result.captured) {
+                SoundManager.playCapture();
+            } else {
+                SoundManager.playMove();
+            }
+        }
+
+        // Вернуть ход белым
         const fen = this.chess.fen();
         const newFen = fen.replace(' b ', ' w ');
         this.chess.load(newFen);
 
         this.renderBoard();
 
-        // Проверка победы (все чёрные съедены)
-        if (this.checkKidsWin()) {
-            this.handleKidsWin();
+        // Проверка — есть ли ещё белые фигуры?
+        if (this.checkKidsLose()) {
+            this.handleKidsLose();
         }
+    },
+
+    // Проверить проигрыш в Kids Mode (все белые съедены)
+    checkKidsLose() {
+        const files = 'abcdefgh';
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const square = files[col] + (8 - row);
+                const piece = this.chess.get(square);
+                if (piece && piece.color === 'w') {
+                    return false; // Ещё есть белые фигуры
+                }
+            }
+        }
+        return true; // Все белые съедены
+    },
+
+    // Обработка проигрыша в Kids Mode
+    handleKidsLose() {
+        this.gameOver = true;
+        document.getElementById('puzzle-title').textContent = '😔 Попробуй ещё!';
+        this.updateHintBlock('Ничего, попробуй снова!', true);
+        SoundManager.playError();
+
+        Analytics.track('kids_level_lost', { pack: this.currentPack });
+
+        // Перезапуск уровня через 2 секунды
+        setTimeout(() => {
+            this.loadKidsLevel(this.kidsLevelIndex);
+        }, 2000);
     },
 
     // Проверить победу в Kids Mode (все чёрные фигуры съедены)
@@ -451,19 +576,22 @@ const Game = {
     // Обработка победы в Kids Mode
     handleKidsWin() {
         this.gameOver = true;
-        const level = PUZZLE_PACKS.kidsmode.levels[this.kidsLevelIndex];
+        const pack = PUZZLE_PACKS[this.currentPack];
+        const level = pack.levels[this.kidsLevelIndex];
 
-        // Отметить уровень как пройденный и увеличить счётчик игр
-        this.kidsCompletedLevels.add(level.id);
-        this.kidsGamesPlayed++;
+        // Отметить уровень как пройденный
+        if (!this.kidsCompletedLevels[this.currentPack]) {
+            this.kidsCompletedLevels[this.currentPack] = new Set();
+        }
+        this.kidsCompletedLevels[this.currentPack].add(level.id);
         this.saveProgress();
 
         document.getElementById('puzzle-title').textContent = '🎉 Молодец!';
-        this.updateHintBlock('Ты съел все фигуры! Отлично!', true);
+        this.showWinBubble();
 
         SoundManager.playNewGame();
 
-        Analytics.track('kids_level_completed', { level: level.id });
+        Analytics.track('kids_level_completed', { pack: this.currentPack, level: level.id });
 
         // Переход к следующему уровню через 2 секунды
         setTimeout(() => {
@@ -471,12 +599,91 @@ const Game = {
         }, 2000);
     },
 
-    // Подсказка в Kids Mode — выделяем белую фигуру
+    // Показать победный бабл с эмодзи и конфетти
+    showWinBubble() {
+        const hintBlock = document.getElementById('hint-block');
+        const hintText = document.getElementById('hint-text');
+
+        // Очистить
+        while (hintText.firstChild) {
+            hintText.removeChild(hintText.firstChild);
+        }
+
+        // Добавить победные эмодзи
+        const winEmojis = ['🎉', '⭐', '🏆'];
+        winEmojis.forEach(emoji => {
+            const span = document.createElement('span');
+            span.className = 'win-emoji';
+            span.textContent = emoji;
+            hintText.appendChild(span);
+        });
+
+        // Добавить классы
+        hintBlock.classList.remove('speech-mode', 'collapsed');
+        hintBlock.classList.add('expanded', 'win-mode');
+
+        // Запустить конфетти
+        this.launchConfetti(document.getElementById('board-container'));
+    },
+
+    // Простой эффект конфетти
+    launchConfetti(container) {
+        const colors = ['#FFD700', '#FF6B6B', '#4CAF50', '#2196F3', '#FF9800', '#E91E63'];
+        const confettiCount = 30;
+
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 0.5 + 's';
+            confetti.style.animationDuration = (1 + Math.random()) + 's';
+            container.appendChild(confetti);
+
+            // Удалить после анимации
+            setTimeout(() => confetti.remove(), 2000);
+        }
+    },
+
+    // Показать речевой бабл с подсказкой [фигура, направление, действие]
+    showSpeechHint(symbols) {
+        const hintBlock = document.getElementById('hint-block');
+        const hintText = document.getElementById('hint-text');
+
+        // Очистить предыдущий контент безопасно
+        while (hintText.firstChild) {
+            hintText.removeChild(hintText.firstChild);
+        }
+
+        // Создать символы: [0]=фигура, [1]=направление, [2]=действие
+        symbols.forEach((symbol, index) => {
+            const span = document.createElement('span');
+            span.className = 'hint-symbol';
+
+            // Добавить специфичный класс
+            if (index === 0) span.classList.add('piece');
+            if (index === 1) span.classList.add('direction');
+            if (index === 2) span.classList.add('action');
+
+            span.textContent = symbol;
+            hintText.appendChild(span);
+        });
+
+        hintBlock.classList.add('expanded', 'speech-mode');
+        hintBlock.classList.remove('collapsed');
+    },
+
+    // Подсказка в Kids Mode — показать эмодзи и выделить фигуру
     showKidsHint() {
         if (this.gameOver) return;
 
-        const level = PUZZLE_PACKS.kidsmode.levels[this.kidsLevelIndex];
-        this.updateHintBlock(level.hint || 'Съешь все чёрные фигуры!', true);
+        const pack = PUZZLE_PACKS[this.currentPack];
+        const level = pack.levels[this.kidsLevelIndex];
+
+        // Показать речевую подсказку
+        if (level.hint) {
+            this.showSpeechHint(level.hint);
+        }
 
         // Найти и выделить первую белую фигуру
         const files = 'abcdefgh';
@@ -551,8 +758,24 @@ const Game = {
         });
     },
 
-    // Вычислить границы доски (динамическая доска)
+    // Вычислить границы доски (динамическая или фиксированная)
     calculateBoardBounds() {
+        const pack = PUZZLE_PACKS[this.currentPack];
+
+        // Для Kids Mode с фиксированным размером доски
+        if (pack && pack.isKidsMode && pack.boardSize) {
+            const size = pack.boardSize;
+            // Доска в правом нижнем углу (e-h, 1-4 для 4x4)
+            this.boardBounds = {
+                minCol: 8 - size,
+                maxCol: 7,
+                minRow: 8 - size,
+                maxRow: 7
+            };
+            return;
+        }
+
+        // Динамическая доска для остальных режимов
         const files = 'abcdefgh';
         let minCol = 7, maxCol = 0, minRow = 7, maxRow = 0;
         let hasPieces = false;
@@ -1053,12 +1276,12 @@ const Game = {
         });
     },
 
-    // Подсказка в AI режиме
+    // Подсказка в AI режиме (взрослый стиль от киборга)
     async showAIHint() {
         if (this.gameOver || this.aiThinking) return;
         if (this.chess.turn() !== this.playerColor) return;
 
-        this.updateHintBlock('🔍 Ищу лучший ход...', true);
+        this.updateHintBlock('Анализ позиции...', true);
 
         // Используем AI чтобы найти лучший ход для игрока
         const bestMove = await ChessAI.getMoveAsync(this.chess, 2);
@@ -1069,7 +1292,11 @@ const Game = {
                 fromCell.classList.add('hint-highlight');
                 setTimeout(() => fromCell.classList.remove('hint-highlight'), 2000);
             }
-            this.updateHintBlock('💡 Попробуй походить этой фигурой!', true);
+            // Короткая формальная подсказка
+            const piece = this.chess.get(bestMove.from);
+            const pieceNames = {p:'Пешка',n:'Конь',b:'Слон',r:'Ладья',q:'Ферзь',k:'Король'};
+            const pieceName = pieceNames[piece.type] || '?';
+            this.updateHintBlock(pieceName + ' ' + bestMove.from + '→' + bestMove.to, true);
         }
 
         SoundManager.playSelect();
@@ -1112,11 +1339,28 @@ const Game = {
 
     // Пропустить puzzle
     skipPuzzle() {
+        if (this.isKidsMode) {
+            this.loadKidsLevel(this.kidsLevelIndex + 1);
+            return;
+        }
         Analytics.track('puzzle_skipped', {
             pack: this.currentPack,
             puzzle: this.currentPuzzle.id
         });
         this.loadPuzzle(this.currentPuzzleIndex + 1);
+    },
+
+    // Предыдущая задача
+    prevPuzzle() {
+        if (this.isKidsMode) {
+            if (this.kidsLevelIndex > 0) {
+                this.loadKidsLevel(this.kidsLevelIndex - 1);
+            }
+            return;
+        }
+        if (this.currentPuzzleIndex > 0) {
+            this.loadPuzzle(this.currentPuzzleIndex - 1);
+        }
     },
 
     // Отмена хода
@@ -1159,20 +1403,26 @@ const Game = {
 
     // Отправить репорт в Telegram
     async sendReport() {
-        const text = document.getElementById('report-text').value.trim();
-        if (!text) {
-            this.closeReportModal();
-            return;
-        }
+        let message = 'KidChess Error Report\n\n';
 
-        const pack = PUZZLE_PACKS[this.currentPack];
-        const message = 'KidChess Error Report\n\n' +
-            'Pack: ' + pack.name + '\n' +
-            'Puzzle: ' + this.currentPuzzle.id + '\n' +
-            'FEN: ' + this.currentPuzzle.fen + '\n' +
-            'Solution: ' + this.currentPuzzle.solution.join(', ') + '\n' +
-            'Step: ' + (this.solutionIndex + 1) + '/' + this.currentPuzzle.solution.length + '\n\n' +
-            'User Report:\n' + text;
+        if (this.isKidsMode) {
+            const pack = PUZZLE_PACKS[this.currentPack];
+            const level = pack.levels[this.kidsLevelIndex];
+            message += 'Mode: Kids Mode\n' +
+                'Pack: ' + pack.name + '\n' +
+                'Level: ' + (this.kidsLevelIndex + 1) + ' - ' + level.name + '\n' +
+                'FEN: ' + level.fen;
+        } else if (this.isAIMode) {
+            message += 'Mode: AI Game\n' +
+                'FEN: ' + this.chess.fen();
+        } else if (this.currentPuzzle) {
+            const pack = PUZZLE_PACKS[this.currentPack];
+            message += 'Pack: ' + pack.name + '\n' +
+                'Puzzle: ' + this.currentPuzzle.id + '\n' +
+                'FEN: ' + this.currentPuzzle.fen + '\n' +
+                'Solution: ' + this.currentPuzzle.solution.join(', ') + '\n' +
+                'Step: ' + (this.solutionIndex + 1) + '/' + this.currentPuzzle.solution.length;
+        }
 
         try {
             const url = 'https://api.telegram.org/bot' + TELEGRAM_CONFIG.botToken + '/sendMessage';
@@ -1186,7 +1436,7 @@ const Game = {
             });
 
             this.showStatus('Отправлено!', 'success');
-            Analytics.track('error_reported', { puzzle: this.currentPuzzle.id });
+            Analytics.track('error_reported', { mode: this.isKidsMode ? 'kids' : this.isAIMode ? 'ai' : 'puzzle' });
         } catch (e) {
             console.error('Failed to send report:', e);
             this.showStatus('Ошибка отправки', 'error');
@@ -1319,8 +1569,9 @@ const Game = {
                     this.goBack();
                     break;
                 case 'reset':
-                    this.kidsCompletedLevels.clear();
-                    this.kidsGamesPlayed = 0;  // Сбросить счётчик игр
+                    if (this.kidsCompletedLevels[this.currentPack]) {
+                        this.kidsCompletedLevels[this.currentPack].clear();
+                    }
                     this.kidsLevelIndex = 0;
                     this.saveProgress();
                     this.loadKidsLevel(0);
@@ -1378,19 +1629,19 @@ const Game = {
             self.goBack();
         });
 
-        // Skip
-        document.getElementById('skip-btn').addEventListener('click', function() {
-            self.skipPuzzle();
+        // Предыдущая задача
+        document.getElementById('prev-btn').addEventListener('click', function() {
+            self.prevPuzzle();
         });
 
-        // Отмена
-        document.getElementById('undo-btn').addEventListener('click', function() {
-            self.undoMove();
-        });
-
-        // Report
+        // Жалоба
         document.getElementById('report-btn').addEventListener('click', function() {
             self.openReportModal();
+        });
+
+        // Следующая задача
+        document.getElementById('next-btn').addEventListener('click', function() {
+            self.skipPuzzle();
         });
 
         // Клик по hint-block — показать подсказку или выделить фигуру
