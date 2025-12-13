@@ -582,36 +582,14 @@ const Game = {
         minRow = Math.max(0, minRow - 1);
         maxRow = Math.min(7, maxRow + 1);
 
-        // Kids Mode: первые 10 игр — принудительно 4x4
-        if (this.isKidsMode && this.kidsGamesPlayed < 10) {
-            // Центрируем 4x4 вокруг фигур
-            const centerCol = Math.floor((minCol + maxCol) / 2);
-            const centerRow = Math.floor((minRow + maxRow) / 2);
-
-            // Вычисляем границы 4x4 с центром близким к фигурам
-            minCol = Math.max(0, centerCol - 1);
-            maxCol = minCol + 3;
-            if (maxCol > 7) {
-                maxCol = 7;
-                minCol = 4;
-            }
-
-            minRow = Math.max(0, centerRow - 1);
-            maxRow = minRow + 3;
-            if (maxRow > 7) {
-                maxRow = 7;
-                minRow = 4;
-            }
-        } else {
-            // Обычная логика: минимум 4x4 доска
-            while (maxCol - minCol < 3) {
-                if (minCol > 0) minCol--;
-                else if (maxCol < 7) maxCol++;
-            }
-            while (maxRow - minRow < 3) {
-                if (minRow > 0) minRow--;
-                else if (maxRow < 7) maxRow++;
-            }
+        // Минимум 4x4 доска для всех режимов
+        while (maxCol - minCol < 3) {
+            if (minCol > 0) minCol--;
+            else if (maxCol < 7) maxCol++;
+        }
+        while (maxRow - minRow < 3) {
+            if (minRow > 0) minRow--;
+            else if (maxRow < 7) maxRow++;
         }
 
         this.boardBounds = { minCol, maxCol, minRow, maxRow };
