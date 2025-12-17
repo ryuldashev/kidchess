@@ -47,6 +47,21 @@ const Analytics = {
         if (typeof umami !== 'undefined') {
             umami.track(event, data);
         }
+    },
+
+    // Трекинг ходов с полной информацией
+    trackMove(result, mode, player, context = {}) {
+        this.track('move', {
+            mode: mode,          // 'puzzle', 'kids', 'ai'
+            player: player,      // 'user', 'opponent', 'ai'
+            piece: result.piece, // 'p', 'n', 'b', 'r', 'q', 'k'
+            from: result.from,
+            to: result.to,
+            captured: result.captured || null,
+            promotion: result.promotion || null,
+            san: result.san,     // 'Nf3', 'exd5', etc.
+            ...context
+        });
     }
 };
 
@@ -82,17 +97,17 @@ const Game = {
     kidsEnemyMoveCounter: 0,  // счётчик для определения когда ходит противник
 
     // Инициализация
-    init() {
+    async init() {
         this.chess = new Chess();
-        this.loadProgress();
+        await this.loadProgress();
         this.renderPackSelection();
         this.attachEventListeners();
     },
 
-    // Загрузить прогресс из localStorage
-    loadProgress() {
+    // Загрузить прогресс (CloudStorage в Telegram, localStorage в браузере)
+    async loadProgress() {
         try {
-            const saved = localStorage.getItem('kidChessProgress');
+            const saved = await TG.storage.get('kidChessProgress');
             if (saved) {
                 const data = JSON.parse(saved);
                 this.completedPuzzles = {};
@@ -114,7 +129,7 @@ const Game = {
         }
     },
 
-    // Сохранить прогресс
+    // Сохранить прогресс (CloudStorage в Telegram, localStorage в браузере)
     saveProgress() {
         try {
             const completed = {};
@@ -125,12 +140,13 @@ const Game = {
             for (const packId in this.kidsCompletedLevels) {
                 kidsCompleted[packId] = Array.from(this.kidsCompletedLevels[packId]);
             }
-            localStorage.setItem('kidChessProgress', JSON.stringify({
+            const data = JSON.stringify({
                 completed,
                 currentPack: this.currentPack,
                 currentIndex: this.currentPuzzleIndex,
                 kidsCompleted
-            }));
+            });
+            TG.storage.set('kidChessProgress', data);
         } catch (e) {
             console.warn('Could not save progress:', e);
         }
@@ -196,7 +212,7 @@ const Game = {
             const count = document.createElement('div');
             count.className = 'pack-card-count';
             if (pack.isDisabled) {
-                count.textContent = 'Скоро';
+                count.textContent = pack.subtitle || 'PRO';
             } else if (pack.isAIMode) {
                 count.textContent = pack.description;
             } else if (pack.isKidsMode) {
@@ -221,8 +237,11 @@ const Game = {
                 card.appendChild(progressBar);
             }
 
-            // Только для активных паков
-            if (!pack.isDisabled) {
+            // Click handlers
+            if (pack.isDisabled && pack.isPremium) {
+                // Premium locked packs - show PRO modal (fake door)
+                card.addEventListener('click', () => this.showProModal(pack.id));
+            } else if (!pack.isDisabled) {
                 card.addEventListener('click', () => this.selectPack(pack.id));
             }
             grid.appendChild(card);
@@ -425,6 +444,7 @@ const Game = {
             this.possibleMoves = this.chess.moves({ square: square, verbose: true });
             this.updateHighlights();
             SoundManager.playSelect();
+            TG.haptic('selection');
             return;
         }
 
@@ -454,9 +474,13 @@ const Game = {
 
         if (isCapture) {
             SoundManager.playCapture();
+            TG.haptic('heavy');
         } else {
             SoundManager.playMove();
+            TG.haptic('medium');
         }
+
+        Analytics.trackMove(result, 'kids', 'user', { pack: this.currentPack });
 
         // Проверка победы (все чёрные съедены)
         if (this.checkKidsWin()) {
@@ -513,6 +537,7 @@ const Game = {
             } else {
                 SoundManager.playMove();
             }
+            Analytics.trackMove(result, 'kids', 'opponent', { pack: this.currentPack });
         }
 
         // Вернуть ход белым
@@ -549,6 +574,7 @@ const Game = {
         document.getElementById('puzzle-title').textContent = '😔 Попробуй ещё!';
         this.updateHintBlock('Ничего, попробуй снова!', true);
         SoundManager.playError();
+        TG.haptic('error');
 
         Analytics.track('kids_level_lost', { pack: this.currentPack });
 
@@ -590,6 +616,7 @@ const Game = {
         this.showWinBubble();
 
         SoundManager.playNewGame();
+        TG.haptic('success');
 
         Analytics.track('kids_level_completed', { pack: this.currentPack, level: level.id });
 
@@ -714,6 +741,7 @@ const Game = {
 
     // Вернуться к выбору паков
     goBack() {
+        TG.haptic('light');
         this.showScreen('pack-select');
         this.renderPackSelection();
         Analytics.track('back_to_packs');
@@ -946,6 +974,7 @@ const Game = {
             this.possibleMoves = this.chess.moves({ square: square, verbose: true });
             this.updateHighlights();
             SoundManager.playSelect();
+            TG.haptic('selection');
             return;
         }
 
@@ -975,6 +1004,7 @@ const Game = {
             this.possibleMoves = this.chess.moves({ square: square, verbose: true });
             this.updateHighlights();
             SoundManager.playSelect();
+            TG.haptic('selection');
             return;
         }
 
@@ -1008,9 +1038,13 @@ const Game = {
 
         if (isCapture) {
             SoundManager.playCapture();
+            TG.haptic('heavy');
         } else {
             SoundManager.playMove();
+            TG.haptic('medium');
         }
+
+        Analytics.trackMove(result, 'ai', 'user', { difficulty: this.aiDifficulty, moveNum: this.aiMoveCount });
 
         this.renderBoard();
 
@@ -1042,6 +1076,8 @@ const Game = {
                     SoundManager.playMove();
                 }
 
+                Analytics.trackMove(result, 'ai', 'ai', { difficulty: this.aiDifficulty });
+
                 this.renderBoard();
             }
         }
@@ -1066,9 +1102,11 @@ const Game = {
 
             if (isPlayerWin) {
                 SoundManager.playNewGame();
+                TG.haptic('success');
                 this.playVictoryAnimation();
             } else {
                 SoundManager.playError();
+                TG.haptic('error');
             }
 
             // Показать модалку результата с задержкой
@@ -1104,6 +1142,7 @@ const Game = {
         if (moveUci !== expectedMove) {
             this.showWrongMove(move.to);
             SoundManager.playError();
+            TG.haptic('error');
             Analytics.track('wrong_move', { puzzle: this.currentPuzzle.id });
             return;
         }
@@ -1119,9 +1158,13 @@ const Game = {
 
         if (isCapture) {
             SoundManager.playCapture();
+            TG.haptic('heavy');
         } else {
             SoundManager.playMove();
+            TG.haptic('medium');
         }
+
+        Analytics.trackMove(result, 'puzzle', 'user', { pack: this.currentPack, puzzle: this.currentPuzzle.id });
 
         this.calculateBoardBounds();
         this.renderBoard();
@@ -1161,6 +1204,8 @@ const Game = {
                 SoundManager.playMove();
             }
 
+            Analytics.trackMove(result, 'puzzle', 'opponent', { pack: this.currentPack, puzzle: this.currentPuzzle.id });
+
             this.calculateBoardBounds();
             this.renderBoard();
         }
@@ -1183,6 +1228,7 @@ const Game = {
         this.completedPuzzles[this.currentPack].add(this.currentPuzzle.id);
         this.saveProgress();
 
+        TG.haptic('success');
         this.playVictoryAnimation();
 
         Analytics.track('puzzle_completed', {
@@ -1477,6 +1523,66 @@ const Game = {
         document.getElementById('result-modal').classList.remove('visible');
     },
 
+    // === PRO MODAL (Fake Door) ===
+
+    // Show PRO modal when clicking locked premium pack
+    showProModal(packId) {
+        const modal = document.getElementById('pro-modal');
+        const content = document.getElementById('pro-content');
+        const comingSoon = document.getElementById('pro-coming-soon');
+
+        // Reset to initial state
+        content.classList.remove('hidden');
+        comingSoon.classList.remove('visible');
+
+        // Show modal
+        modal.classList.add('visible');
+
+        // Track events
+        Analytics.track('premium_pack_clicked', { pack: packId });
+        Analytics.track('pro_modal_shown', { pack: packId });
+
+        // Store which pack triggered modal for analytics
+        this.proModalPackId = packId;
+    },
+
+    // Handle "Buy" button click
+    handleProBuyClick() {
+        const content = document.getElementById('pro-content');
+        const comingSoon = document.getElementById('pro-coming-soon');
+
+        // Track conversion event (KEY METRIC)
+        Analytics.track('pro_buy_clicked', {
+            pack: this.proModalPackId,
+            price: 3.99,
+            currency: 'USD'
+        });
+
+        // Show "Coming soon" message
+        content.classList.add('hidden');
+        comingSoon.classList.add('visible');
+
+        // Play success sound
+        SoundManager.playNewGame();
+    },
+
+    // Close PRO modal
+    closeProModal() {
+        const modal = document.getElementById('pro-modal');
+        const content = document.getElementById('pro-content');
+
+        // Track close event only if modal was showing main content (not after buy)
+        if (!content.classList.contains('hidden') && this.proModalPackId) {
+            Analytics.track('pro_modal_closed', {
+                pack: this.proModalPackId,
+                converted: false
+            });
+        }
+
+        modal.classList.remove('visible');
+        this.proModalPackId = null;
+    },
+
     // Начать AI-игру заново
     restartAIGame() {
         this.closeResultModal();
@@ -1672,12 +1778,20 @@ const Game = {
             }
         });
 
+        // Клик вне PRO модалки закрывает её
+        document.getElementById('pro-modal').addEventListener('click', function(e) {
+            if (e.target.id === 'pro-modal') {
+                self.closeProModal();
+            }
+        });
+
         // Клавиатура
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 self.toggleMenu(false);
                 self.closeReportModal();
                 self.closeResultModal();
+                self.closeProModal();
             } else if (e.key === 'ArrowRight') {
                 self.loadPuzzle(self.currentPuzzleIndex + 1);
             } else if (e.key === 'ArrowLeft') {
@@ -1696,7 +1810,29 @@ const Game = {
     }
 };
 
+// Theme toggle (night mode)
+function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+
+    // Check saved preference
+    const lightOverride = localStorage.getItem('lightOverride') === 'true';
+    if (lightOverride) {
+        document.documentElement.classList.add('light-override');
+        toggle.textContent = '☀️';
+    }
+
+    toggle.addEventListener('click', function() {
+        const html = document.documentElement;
+        const isLight = html.classList.toggle('light-override');
+        localStorage.setItem('lightOverride', isLight);
+        toggle.textContent = isLight ? '☀️' : '🌙';
+        TG.haptic('light');
+    });
+}
+
 // Запуск при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     Game.init();
+    initThemeToggle();
 });

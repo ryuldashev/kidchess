@@ -12,7 +12,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#4a7c59">
-    <title>KidChess</title>
+    <title>Sticky Chess</title>
+    <!-- Telegram WebApp SDK (safe to load in browser, does nothing) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
@@ -25,15 +27,21 @@
         <!-- Pack Selection Screen -->
         <div id="pack-select-screen" class="screen active">
             <div class="pack-header">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Выключить ночной режим">
+                    🌙
+                </button>
                 <div class="pack-logo">
                     <span class="pack-logo-icon">♘</span>
-                    <span class="pack-logo-text">kid chess</span>
+                    <span class="pack-logo-text">sticky chess</span>
                 </div>
                 <p class="pack-subtitle">Выбери набор задачек!</p>
             </div>
             <div id="pack-grid"></div>
             <div class="pack-footer">
-                <p>🎯 Для детей от 3 лет</p>
+                <p>🛡️ Безопасно для детей от 3 лет</p>
+                <a href="https://t.me/stickychessbot" class="telegram-link">
+                    <span class="telegram-icon">✈️</span> Играть в Telegram
+                </a>
             </div>
         </div>
 
@@ -144,7 +152,53 @@
         </div>
     </div>
 
+    <!-- PRO Modal (Fake Door) -->
+    <div id="pro-modal" class="modal">
+        <div class="modal-content pro-modal">
+            <!-- Main content -->
+            <div id="pro-content" class="pro-content">
+                <div class="pro-icon">👑</div>
+                <h2>KidChess PRO</h2>
+                <p class="pro-subtitle">Разблокируй все возможности!</p>
+
+                <div class="pro-features">
+                    <div class="pro-feature">
+                        <span class="pro-feature-icon">📦</span>
+                        <span class="pro-feature-text">99 уровней и квестов</span>
+                    </div>
+                    <div class="pro-feature">
+                        <span class="pro-feature-icon">🎓</span>
+                        <span class="pro-feature-text">Обучающие квесты с объяснениями</span>
+                    </div>
+                    <div class="pro-feature">
+                        <span class="pro-feature-icon">🆕</span>
+                        <span class="pro-feature-text">Новые паки каждый месяц</span>
+                    </div>
+                    <div class="pro-feature">
+                        <span class="pro-feature-icon">🏆</span>
+                        <span class="pro-feature-text">Путь к чемпионству</span>
+                    </div>
+                </div>
+
+                <div class="pro-price">$3.99</div>
+                <p class="pro-price-period">в месяц</p>
+
+                <button class="btn-pro" onclick="Game.handleProBuyClick()">Купить PRO</button>
+                <button class="btn-secondary" onclick="Game.closeProModal()">Не сейчас</button>
+            </div>
+
+            <!-- Coming soon message (shown after buy click) -->
+            <div id="pro-coming-soon" class="pro-coming-soon">
+                <div class="pro-coming-soon-icon">🚀</div>
+                <h3>Скоро!</h3>
+                <p>Мы работаем над PRO-версией.<br>Спасибо за интерес!</p>
+                <button class="btn-primary" onclick="Game.closeProModal()" style="margin-top: 20px;">Понятно</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/chess.min.js"></script>
+    <script src="js/telegram.js"></script>
     <script src="js/sounds.js"></script>
     <script src="js/puzzles.js"></script>
     <script src="js/ai.js"></script>

@@ -97,6 +97,40 @@ body.theme-kids { --bg-color: #c06090; }
 .pack-header {
     text-align: center;
     margin-bottom: 30px;
+    position: relative;
+}
+
+/* Theme toggle button - visible only in dark mode */
+.theme-toggle {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: -50px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Show toggle only in dark mode (system) */
+@media (prefers-color-scheme: dark) {
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 .pack-logo {
@@ -188,22 +222,25 @@ body.theme-kids { --bg-color: #c06090; }
     grid-column: span 2;
 }
 
-/* Disabled pack cards (premium/locked) */
+/* Disabled pack cards (premium/locked) - CLICKABLE for fake door */
 .pack-card.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    filter: grayscale(30%);
+    opacity: 0.7;
+    cursor: pointer;
+    filter: grayscale(15%);
     position: relative;
+}
+
+.pack-card.disabled:active {
+    transform: scale(0.98);
 }
 
 .pack-card.disabled::after {
     content: '🔒';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 28px;
-    opacity: 0.8;
+    top: 8px;
+    right: 8px;
+    font-size: 16px;
+    opacity: 0.9;
 }
 
 .pack-footer {
@@ -215,6 +252,35 @@ body.theme-kids { --bg-color: #c06090; }
 .pack-footer p {
     font-size: 14px;
     color: var(--text-secondary);
+}
+
+.telegram-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.telegram-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
+}
+
+.telegram-link:active {
+    transform: scale(0.98);
+}
+
+/* Скрыть ссылку на TG внутри Telegram */
+body.telegram-app .telegram-link {
+    display: none;
 }
 
 /* ========== GAME SCREEN ========== */
@@ -941,6 +1007,134 @@ body.theme-kids { --bg-color: #c06090; }
     margin-top: 4px;
 }
 
+/* ========== PRO MODAL (Fake Door) ========== */
+.pro-modal {
+    padding: 28px 24px;
+    max-width: 340px;
+}
+
+.pro-icon {
+    font-size: 56px;
+    margin-bottom: 8px;
+}
+
+.pro-modal h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.pro-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.pro-features {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.pro-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.pro-feature:last-child {
+    border-bottom: none;
+}
+
+.pro-feature-icon {
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
+}
+
+.pro-feature-text {
+    font-size: 14px;
+    color: #444;
+}
+
+.pro-price {
+    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.pro-price-period {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.btn-pro {
+    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+    color: white;
+    width: 100%;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-pro:active {
+    transform: scale(0.98);
+}
+
+.pro-modal .btn-secondary {
+    margin-top: 12px;
+    background: transparent;
+    color: #888;
+    font-size: 13px;
+    width: 100%;
+}
+
+.pro-coming-soon {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.pro-coming-soon.visible {
+    display: block;
+}
+
+.pro-coming-soon-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.pro-coming-soon h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.pro-coming-soon p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.pro-content {
+    transition: opacity 0.2s ease;
+}
+
+.pro-content.hidden {
+    display: none;
+}
+
 /* ========== STATUS MESSAGES ========== */
 #status-message {
     position: fixed;
@@ -1059,5 +1253,19 @@ body.theme-kids { --bg-color: #c06090; }
     #app {
         padding-top: max(20px, env(safe-area-inset-top));
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ========== DARK MODE (blue light filter) ========== */
+
+/* Telegram dark mode */
+html:has(body.telegram-dark):not(.light-override) {
+    filter: sepia(20%) saturate(90%) brightness(85%);
+}
+
+/* Browser dark mode */
+@media (prefers-color-scheme: dark) {
+    html:not(.light-override) {
+        filter: sepia(20%) saturate(90%) brightness(85%);
     }
 }
