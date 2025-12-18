@@ -864,6 +864,26 @@ const Game = {
         this.boardBounds = { minCol, maxCol, minRow, maxRow };
     },
 
+    // Получить реальную высоту viewport (с учётом Telegram)
+    getViewportHeight() {
+        // Telegram Mini App предоставляет точную высоту через CSS variable
+        const tgHeight = getComputedStyle(document.documentElement).getPropertyValue('--tg-viewport-height');
+        if (tgHeight && tgHeight !== '') {
+            const parsed = parseInt(tgHeight);
+            if (!isNaN(parsed) && parsed > 0) {
+                return parsed;
+            }
+        }
+
+        // Fallback: используем visualViewport API (более точный чем innerHeight)
+        if (window.visualViewport) {
+            return window.visualViewport.height;
+        }
+
+        // Последний fallback
+        return window.innerHeight;
+    },
+
     // Отрисовка доски
     renderBoard() {
         const board = document.getElementById('board');
@@ -876,8 +896,18 @@ const Game = {
         const cols = maxCol - minCol + 1;
         const rows = maxRow - minRow + 1;
 
-        const maxBoardHeight = window.innerHeight * 0.55;
-        const maxBoardWidth = window.innerWidth * 0.9;
+        // Используем реальную высоту viewport
+        const viewportHeight = this.getViewportHeight();
+        const viewportWidth = window.innerWidth;
+
+        // Рассчитываем доступное пространство с учётом UI элементов
+        // Header ~50px, Controls ~60px, HintBlock ~50px, paddings ~40px = ~200px
+        const uiElementsHeight = Math.min(200, viewportHeight * 0.35);
+        const availableHeight = viewportHeight - uiElementsHeight;
+
+        // Максимальный размер доски - 50% от высоты viewport (адаптивно)
+        const maxBoardHeight = Math.min(availableHeight, viewportHeight * 0.55);
+        const maxBoardWidth = viewportWidth * 0.92;
         const cellSize = Math.min(
             Math.floor(maxBoardHeight / rows),
             Math.floor(maxBoardWidth / cols),
@@ -1829,12 +1859,23 @@ const Game = {
             }
         });
 
-        // Resize
-        window.addEventListener('resize', function() {
-            if (self.currentPuzzle) {
-                self.renderBoard();
-            }
-        });
+        // Resize - throttled to avoid excessive re-renders
+        let resizeTimeout;
+        const handleResize = function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                if (self.currentPuzzle || self.isAIMode || self.isKidsMode) {
+                    self.renderBoard();
+                }
+            }, 100);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Also listen for visualViewport changes (better for mobile browsers)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
     }
 };
 

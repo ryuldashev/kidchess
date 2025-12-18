@@ -52,6 +52,7 @@
 
 html, body {
     height: 100%;
+    height: 100dvh; /* Dynamic viewport height - accounts for browser chrome */
     overflow: hidden;
 }
 
@@ -80,11 +81,13 @@ body.theme-kids { --bg-color: #c06090; }
     align-items: center;
     justify-content: space-between;
     height: 100%;
+    height: 100dvh; /* Use dynamic viewport height */
+    height: calc(var(--tg-viewport-height, 100dvh)); /* Telegram viewport height if available */
     width: 100%;
     max-width: 500px;
-    padding: 20px;
-    padding-top: env(safe-area-inset-top, 20px);
-    padding-bottom: env(safe-area-inset-bottom, 20px);
+    padding: clamp(8px, 2vh, 20px); /* Responsive padding */
+    padding-top: max(clamp(8px, 2vh, 20px), env(safe-area-inset-top, 0px));
+    padding-bottom: max(clamp(8px, 2vh, 20px), env(safe-area-inset-bottom, 0px));
 }
 
 /* ========== PACK SELECTION SCREEN ========== */
@@ -96,7 +99,7 @@ body.theme-kids { --bg-color: #c06090; }
 
 .pack-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: clamp(12px, 3vh, 30px);
     position: relative;
 }
 
@@ -142,21 +145,21 @@ body.theme-kids { --bg-color: #c06090; }
 }
 
 .pack-logo-icon {
-    font-size: 48px;
+    font-size: clamp(32px, 6vh, 48px);
     font-weight: 900;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
     color: var(--text-primary);
 }
 
 .pack-logo-text {
-    font-size: 36px;
+    font-size: clamp(24px, 5vh, 36px);
     font-weight: 600;
     color: var(--text-primary);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .pack-subtitle {
-    font-size: 18px;
+    font-size: clamp(14px, 2.5vh, 18px);
     color: var(--text-secondary);
     margin-top: 4px;
 }
@@ -164,16 +167,19 @@ body.theme-kids { --bg-color: #c06090; }
 #pack-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 0 16px;
+    gap: clamp(8px, 2vh, 16px);
+    padding: 0 clamp(8px, 2vw, 16px);
     width: 100%;
     max-width: 400px;
+    flex: 1;
+    overflow-y: auto;
+    align-content: start;
 }
 
 .pack-card {
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    padding: 20px 16px;
+    border-radius: clamp(10px, 2vh, 16px);
+    padding: clamp(12px, 2vh, 20px) clamp(10px, 2vw, 16px);
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -191,20 +197,20 @@ body.theme-kids { --bg-color: #c06090; }
 }
 
 .pack-card-emoji {
-    font-size: 40px;
-    margin-bottom: 8px;
+    font-size: clamp(28px, 5vh, 40px);
+    margin-bottom: clamp(4px, 1vh, 8px);
     display: block;
 }
 
 .pack-card-name {
-    font-size: 16px;
+    font-size: clamp(13px, 2vh, 16px);
     font-weight: 600;
     color: #333;
     margin-bottom: 4px;
 }
 
 .pack-card-count {
-    font-size: 12px;
+    font-size: clamp(10px, 1.5vh, 12px);
     color: #666;
 }
 
@@ -245,8 +251,9 @@ body.theme-kids { --bg-color: #c06090; }
 
 .pack-footer {
     margin-top: auto;
-    padding: 20px;
+    padding: clamp(10px, 2vh, 20px);
     text-align: center;
+    flex-shrink: 0;
 }
 
 .pack-footer p {
@@ -297,7 +304,8 @@ body.telegram-app .telegram-link {
     justify-content: space-between;
     width: 100%;
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: clamp(8px, 2vh, 20px);
+    flex-shrink: 0;
 }
 
 #back-btn {
@@ -358,7 +366,7 @@ body.telegram-app .telegram-link {
 }
 
 #puzzle-title {
-    font-size: 24px;
+    font-size: clamp(18px, 3vh, 24px);
     font-weight: 600;
     color: var(--text-primary);
     margin-top: 2px;
@@ -522,6 +530,12 @@ body.telegram-app .telegram-link {
     height: 100%;
 }
 
+/* Fruit emoji pieces for Kids Mode */
+.piece.fruit-piece {
+    font-size: calc(var(--cell-size) * 0.7);
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
+}
+
 .cell:active .piece {
     transform: scale(1.1);
 }
@@ -593,13 +607,14 @@ body.telegram-app .telegram-link {
 /* ========== CONTROLS ========== */
 #controls {
     display: flex;
-    gap: 24px;
-    margin-top: 30px;
+    gap: clamp(16px, 3vw, 24px);
+    margin-top: clamp(12px, 2vh, 30px);
+    flex-shrink: 0;
 }
 
 .control-btn {
-    width: 56px;
-    height: 56px;
+    width: clamp(44px, 8vh, 56px);
+    height: clamp(44px, 8vh, 56px);
     border: none;
     border-radius: 50%;
     background: var(--btn-bg);
@@ -649,16 +664,17 @@ body.telegram-app .telegram-link {
 #hint-block {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: clamp(8px, 1.5vw, 12px);
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin-top: 16px;
+    border-radius: clamp(12px, 2vh, 16px);
+    padding: clamp(8px, 1.5vh, 12px) clamp(12px, 2vw, 16px);
+    margin-top: clamp(8px, 1.5vh, 16px);
     width: 100%;
     max-width: 400px;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
 #hint-block:hover {
@@ -675,13 +691,13 @@ body.telegram-app .telegram-link {
 }
 
 .hint-avatar {
-    font-size: 32px;
+    font-size: clamp(24px, 4vh, 32px);
     line-height: 1;
     flex-shrink: 0;
 }
 
 #hint-text {
-    font-size: 14px;
+    font-size: clamp(12px, 2vh, 14px);
     color: #333;
     line-height: 1.4;
     margin: 0;
@@ -1226,16 +1242,43 @@ body.telegram-app .telegram-link {
 }
 
 /* ========== RESPONSIVE ========== */
-@media (max-width: 400px) {
+
+/* Small screens (iPhone SE, older iPhones) */
+@media (max-height: 600px) {
+    .pack-header {
+        margin-bottom: 8px;
+    }
+
+    .pack-logo {
+        gap: 8px;
+    }
+
+    #header {
+        margin-bottom: 6px;
+    }
+
+    #level-top {
+        font-size: 10px;
+    }
+
+    #controls {
+        margin-top: 8px;
+    }
+}
+
+/* Very small width */
+@media (max-width: 350px) {
     #puzzle-title {
-        font-size: 20px;
+        font-size: 16px;
     }
 
-    .control-btn {
-        width: 50px;
-        height: 50px;
+    .control-btn svg {
+        width: 20px;
+        height: 20px;
     }
+}
 
+@media (max-width: 400px) {
     .control-btn svg {
         width: 24px;
         height: 24px;
@@ -1248,11 +1291,11 @@ body.telegram-app .telegram-link {
     }
 }
 
-/* Для iPhone с notch */
+/* Для iPhone с notch - use safe area insets */
 @supports (padding: max(0px)) {
     #app {
-        padding-top: max(20px, env(safe-area-inset-top));
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-top: max(clamp(8px, 2vh, 20px), env(safe-area-inset-top));
+        padding-bottom: max(clamp(8px, 2vh, 20px), env(safe-area-inset-bottom));
     }
 }
 
