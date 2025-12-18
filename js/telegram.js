@@ -8,6 +8,17 @@ const TG = {
 
     // Initialize Telegram WebApp
     init() {
+        // Set viewport height CSS variable for both Telegram and browser
+        this.updateViewportHeight();
+
+        // Listen for resize to update viewport height
+        window.addEventListener('resize', () => this.updateViewportHeight());
+
+        // Also listen for visualViewport changes (better for mobile browsers)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => this.updateViewportHeight());
+        }
+
         if (!this.isTelegram) {
             console.log('[TG] Running in browser mode');
             return;
@@ -27,10 +38,32 @@ const TG = {
         // Listen for theme changes
         this.webapp.onEvent('themeChanged', () => this.applyTheme());
 
+        // Listen for viewport changes in Telegram
+        this.webapp.onEvent('viewportChanged', () => this.updateViewportHeight());
+
         // Disable vertical swipes (prevents closing by swipe)
         if (this.webapp.disableVerticalSwipes) {
             this.webapp.disableVerticalSwipes();
         }
+    },
+
+    // Update CSS variable with actual viewport height
+    updateViewportHeight() {
+        let height;
+
+        if (this.isTelegram && this.webapp.viewportStableHeight) {
+            // Telegram provides stable viewport height (excludes keyboard, etc.)
+            height = this.webapp.viewportStableHeight;
+        } else if (window.visualViewport) {
+            // Use visualViewport API for accurate height
+            height = window.visualViewport.height;
+        } else {
+            // Fallback to innerHeight
+            height = window.innerHeight;
+        }
+
+        // Set CSS variable
+        document.documentElement.style.setProperty('--tg-viewport-height', height + 'px');
     },
 
     // Apply theme based on Telegram color scheme (dark/light)
