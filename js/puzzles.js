@@ -148,6 +148,7 @@ const PUZZLE_PACKS = {
         isKidsMode: true,
         boardSize: 4,
         enemyMoveRate: 2,
+        useFruits: false,  // обычные фигуры вместо фруктов
         levels: [
             {
                 id: 'p3_001',
@@ -207,12 +208,13 @@ const PUZZLE_PACKS = {
         puzzles: []
     },
 
-    // === ПРЕМИУМ ПАКИ (disabled) ===
+    // === ПРЕМИУМ ПАКИ (fake door for conversion tracking) ===
     premium1: {
         id: 'premium1',
-        name: 'Скоро',
-        emoji: null,
-        color: '#9E9E9E',
+        name: 'Mega Pack',
+        emoji: '💎',
+        color: '#9C27B0',
+        subtitle: '99 уровней',
         isDisabled: true,
         isPremium: true,
         levels: [],
@@ -221,9 +223,10 @@ const PUZZLE_PACKS = {
 
     premium2: {
         id: 'premium2',
-        name: 'Скоро',
-        emoji: null,
-        color: '#9E9E9E',
+        name: 'Чемпион',
+        emoji: '🏆',
+        color: '#FF9800',
+        subtitle: 'Обучение',
         isDisabled: true,
         isPremium: true,
         levels: [],

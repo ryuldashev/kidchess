@@ -24,6 +24,11 @@ const SoundManager = {
     playTone(frequency, duration, type = 'sine', volume = 0.3) {
         if (!this.enabled || !this.context) return;
 
+        // Разблокировка AudioContext при каждом воспроизведении (для мобильных)
+        if (this.context.state === 'suspended') {
+            this.context.resume();
+        }
+
         const oscillator = this.context.createOscillator();
         const gainNode = this.context.createGain();
 
@@ -81,11 +86,16 @@ const SoundManager = {
 };
 
 // Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        SoundManager.init();
+    });
+} else {
+    // DOMContentLoaded уже прошёл
     SoundManager.init();
-});
+}
 
-// Разблокировка звука при первом касании
+// Разблокировка звука при первом касании (для iOS)
 document.addEventListener('touchstart', () => {
     SoundManager.unlock();
 }, { once: true });

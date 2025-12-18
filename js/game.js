@@ -1,5 +1,8 @@
 // KidChess - Шахматы для детей
 
+// Эмодзи фруктов и овощей для пешек противника (Kids Mode)
+const FRUIT_EMOJIS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🥕', '🍅', '🥒'];
+
 // 3D-стиль SVG фигуры (реалистичные с градиентами)
 const PIECE_SVG = {
     // Белые фигуры
@@ -95,6 +98,9 @@ const Game = {
     kidsLevelIndex: 0,
     kidsCompletedLevels: {},  // { packId: Set of level ids }
     kidsEnemyMoveCounter: 0,  // счётчик для определения когда ходит противник
+
+    // Timer для автоперехода к следующему уровню (чтобы можно было отменить при ручном переходе)
+    nextLevelTimer: null,
 
     // Инициализация
     async init() {
@@ -379,6 +385,12 @@ const Game = {
 
     // Загрузить уровень Kids Mode
     loadKidsLevel(index) {
+        // Отменить автопереход, если он был запланирован
+        if (this.nextLevelTimer) {
+            clearTimeout(this.nextLevelTimer);
+            this.nextLevelTimer = null;
+        }
+
         const pack = PUZZLE_PACKS[this.currentPack];
         const levels = pack.levels;
 
@@ -579,7 +591,7 @@ const Game = {
         Analytics.track('kids_level_lost', { pack: this.currentPack });
 
         // Перезапуск уровня через 2 секунды
-        setTimeout(() => {
+        this.nextLevelTimer = setTimeout(() => {
             this.loadKidsLevel(this.kidsLevelIndex);
         }, 2000);
     },
@@ -621,7 +633,7 @@ const Game = {
         Analytics.track('kids_level_completed', { pack: this.currentPack, level: level.id });
 
         // Переход к следующему уровню через 2 секунды
-        setTimeout(() => {
+        this.nextLevelTimer = setTimeout(() => {
             this.loadKidsLevel(this.kidsLevelIndex + 1);
         }, 2000);
     },
@@ -749,6 +761,12 @@ const Game = {
 
     // Загрузить puzzle
     loadPuzzle(index) {
+        // Отменить автопереход, если он был запланирован
+        if (this.nextLevelTimer) {
+            clearTimeout(this.nextLevelTimer);
+            this.nextLevelTimer = null;
+        }
+
         if (!this.currentPackPuzzles.length) return;
 
         if (index < 0) index = this.currentPackPuzzles.length - 1;
@@ -882,17 +900,27 @@ const Game = {
 
                 const piece = this.chess.get(square);
                 if (piece) {
-                    const pieceKey = piece.color + piece.type.toUpperCase();
-                    const svgString = PIECE_SVG[pieceKey];
-                    if (svgString) {
-                        const pieceDiv = document.createElement('div');
-                        pieceDiv.className = 'piece';
-                        const svg = createPieceSVG(svgString);
-                        if (svg) {
-                            pieceDiv.appendChild(svg);
+                    const pieceDiv = document.createElement('div');
+                    pieceDiv.className = 'piece';
+
+                    // В Kids Mode чёрные пешки — фрукты/овощи (если useFruits !== false)
+                    const pack = PUZZLE_PACKS[this.currentPack];
+                    const useFruits = pack && pack.useFruits !== false;
+                    if (this.isKidsMode && useFruits && piece.color === 'b' && piece.type === 'p') {
+                        const fruitEmoji = FRUIT_EMOJIS[col % FRUIT_EMOJIS.length];
+                        pieceDiv.classList.add('fruit-piece');
+                        pieceDiv.textContent = fruitEmoji;
+                    } else {
+                        const pieceKey = piece.color + piece.type.toUpperCase();
+                        const svgString = PIECE_SVG[pieceKey];
+                        if (svgString) {
+                            const svg = createPieceSVG(svgString);
+                            if (svg) {
+                                pieceDiv.appendChild(svg);
+                            }
                         }
-                        cell.appendChild(pieceDiv);
                     }
+                    cell.appendChild(pieceDiv);
                 }
 
                 if (row === maxRow) {
@@ -1242,7 +1270,7 @@ const Game = {
             SoundManager.playNewGame();
         }, 800);
 
-        setTimeout(() => {
+        this.nextLevelTimer = setTimeout(() => {
             this.loadPuzzle(this.currentPuzzleIndex + 1);
         }, 2000);
     },
