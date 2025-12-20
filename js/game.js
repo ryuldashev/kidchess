@@ -1,7 +1,13 @@
 // KidChess - Шахматы для детей
 
-// Эмодзи фруктов и овощей для пешек противника (Kids Mode)
-const FRUIT_EMOJIS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🥕', '🍅', '🥒'];
+// Эмодзи еды для пешек противника (Kids Mode) — "ферма"
+const FRUIT_EMOJIS = ['🌾', '🍞', '🥕', '🌽', '🍎', '🧀', '🥒', '🥑'];
+
+// Available skins
+const SKINS = {
+    classic: 'classic',
+    pixel: 'pixel'   // Minecraft-style "Bad Mode"
+};
 
 // 3D-стиль SVG фигуры (реалистичные с градиентами)
 const PIECE_SVG = {
@@ -20,6 +26,159 @@ const PIECE_SVG = {
     bB: `<svg viewBox="0 0 45 45"><defs><linearGradient id="bBg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#555"/><stop offset="100%" style="stop-color:#222"/></linearGradient></defs><g fill="url(#bBg)" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.354.49-2.323.47-3-.5 1.354-1.94 3-2 3-2z"/><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z"/><circle cx="22.5" cy="8" r="2.5"/><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" fill="none" stroke="#fff" stroke-width="1"/></g></svg>`,
     bN: `<svg viewBox="0 0 45 45"><defs><linearGradient id="bNg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#555"/><stop offset="100%" style="stop-color:#222"/></linearGradient></defs><g fill="url(#bNg)" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21"/><path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3"/><path d="M9.5 25.5a.5.5 0 11-1 0 .5.5 0 111 0zM14.933 15.75a.5 1.5 30 11-.866-.5.5 1.5 30 11.866.5z" fill="#fff"/></g></svg>`,
     bP: `<svg viewBox="0 0 45 45"><defs><linearGradient id="bPg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#555"/><stop offset="100%" style="stop-color:#222"/></linearGradient></defs><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="url(#bPg)" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg>`
+};
+
+// Пиксельные фигуры в стиле Minecraft (Bad Mode) - 16x16 для лучшей детализации
+const PIECE_SVG_PIXEL = {
+    // Белые фигуры - пиксельный стиль 16x16
+    wK: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="7" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="6" y="2" width="4" height="1" fill="#FFD700"/>
+        <rect x="5" y="3" width="6" height="2" fill="#FFFFFF"/>
+        <rect x="6" y="3" width="4" height="1" fill="#F0F0F0"/>
+        <rect x="4" y="5" width="8" height="2" fill="#FFFFFF"/>
+        <rect x="5" y="5" width="6" height="1" fill="#F0F0F0"/>
+        <rect x="3" y="7" width="10" height="2" fill="#FFFFFF"/>
+        <rect x="4" y="7" width="8" height="1" fill="#E8E8E8"/>
+        <rect x="3" y="9" width="10" height="2" fill="#E0E0E0"/>
+        <rect x="2" y="11" width="12" height="3" fill="#D0D0D0"/>
+        <rect x="3" y="11" width="10" height="1" fill="#E0E0E0"/>
+        <rect x="2" y="14" width="12" height="2" fill="#C0C0C0"/>
+    </svg>`,
+    wQ: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="1" y="1" width="2" height="2" fill="#FFD700"/>
+        <rect x="4" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="7" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="10" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="13" y="1" width="2" height="2" fill="#FFD700"/>
+        <rect x="2" y="3" width="12" height="2" fill="#FFFFFF"/>
+        <rect x="3" y="5" width="10" height="3" fill="#FFFFFF"/>
+        <rect x="4" y="5" width="8" height="1" fill="#F0F0F0"/>
+        <rect x="3" y="8" width="10" height="2" fill="#E8E8E8"/>
+        <rect x="2" y="10" width="12" height="2" fill="#E0E0E0"/>
+        <rect x="2" y="12" width="12" height="2" fill="#D0D0D0"/>
+        <rect x="2" y="14" width="12" height="2" fill="#C0C0C0"/>
+    </svg>`,
+    wR: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="2" y="0" width="3" height="3" fill="#FFFFFF"/>
+        <rect x="6" y="0" width="4" height="3" fill="#FFFFFF"/>
+        <rect x="11" y="0" width="3" height="3" fill="#FFFFFF"/>
+        <rect x="3" y="0" width="1" height="2" fill="#E8E8E8"/>
+        <rect x="7" y="0" width="2" height="2" fill="#E8E8E8"/>
+        <rect x="12" y="0" width="1" height="2" fill="#E8E8E8"/>
+        <rect x="2" y="3" width="12" height="2" fill="#E0E0E0"/>
+        <rect x="4" y="5" width="8" height="6" fill="#FFFFFF"/>
+        <rect x="5" y="5" width="6" height="3" fill="#F0F0F0"/>
+        <rect x="3" y="11" width="10" height="2" fill="#E0E0E0"/>
+        <rect x="2" y="13" width="12" height="3" fill="#D0D0D0"/>
+    </svg>`,
+    wB: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="7" y="0" width="2" height="2" fill="#FFFFFF"/>
+        <rect x="6" y="2" width="4" height="2" fill="#FFFFFF"/>
+        <rect x="7" y="3" width="2" height="1" fill="#333333"/>
+        <rect x="5" y="4" width="6" height="3" fill="#FFFFFF"/>
+        <rect x="6" y="4" width="4" height="1" fill="#F0F0F0"/>
+        <rect x="4" y="7" width="8" height="3" fill="#FFFFFF"/>
+        <rect x="5" y="7" width="6" height="1" fill="#E8E8E8"/>
+        <rect x="3" y="10" width="10" height="2" fill="#E0E0E0"/>
+        <rect x="2" y="12" width="12" height="2" fill="#D0D0D0"/>
+        <rect x="2" y="14" width="12" height="2" fill="#C0C0C0"/>
+    </svg>`,
+    wN: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="4" y="0" width="4" height="2" fill="#FFFFFF"/>
+        <rect x="3" y="2" width="6" height="2" fill="#FFFFFF"/>
+        <rect x="3" y="2" width="2" height="2" fill="#333333"/>
+        <rect x="4" y="4" width="7" height="2" fill="#FFFFFF"/>
+        <rect x="5" y="6" width="7" height="2" fill="#FFFFFF"/>
+        <rect x="4" y="8" width="8" height="2" fill="#E8E8E8"/>
+        <rect x="3" y="10" width="9" height="2" fill="#E0E0E0"/>
+        <rect x="3" y="12" width="10" height="2" fill="#D0D0D0"/>
+        <rect x="2" y="14" width="12" height="2" fill="#C0C0C0"/>
+    </svg>`,
+    wP: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="6" y="2" width="4" height="3" fill="#FFFFFF"/>
+        <rect x="7" y="2" width="2" height="1" fill="#F0F0F0"/>
+        <rect x="5" y="5" width="6" height="4" fill="#FFFFFF"/>
+        <rect x="6" y="5" width="4" height="2" fill="#F0F0F0"/>
+        <rect x="4" y="9" width="8" height="2" fill="#E8E8E8"/>
+        <rect x="3" y="11" width="10" height="2" fill="#E0E0E0"/>
+        <rect x="3" y="13" width="10" height="3" fill="#D0D0D0"/>
+    </svg>`,
+
+    // Чёрные фигуры - пиксельный стиль 16x16
+    bK: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="7" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="6" y="2" width="4" height="1" fill="#FFD700"/>
+        <rect x="5" y="3" width="6" height="2" fill="#4A4A4A"/>
+        <rect x="6" y="3" width="4" height="1" fill="#5A5A5A"/>
+        <rect x="4" y="5" width="8" height="2" fill="#3A3A3A"/>
+        <rect x="5" y="5" width="6" height="1" fill="#4A4A4A"/>
+        <rect x="3" y="7" width="10" height="2" fill="#333333"/>
+        <rect x="4" y="7" width="8" height="1" fill="#444444"/>
+        <rect x="3" y="9" width="10" height="2" fill="#2A2A2A"/>
+        <rect x="2" y="11" width="12" height="3" fill="#222222"/>
+        <rect x="3" y="11" width="10" height="1" fill="#333333"/>
+        <rect x="2" y="14" width="12" height="2" fill="#1A1A1A"/>
+    </svg>`,
+    bQ: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="1" y="1" width="2" height="2" fill="#FFD700"/>
+        <rect x="4" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="7" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="10" y="0" width="2" height="2" fill="#FFD700"/>
+        <rect x="13" y="1" width="2" height="2" fill="#FFD700"/>
+        <rect x="2" y="3" width="12" height="2" fill="#4A4A4A"/>
+        <rect x="3" y="5" width="10" height="3" fill="#3A3A3A"/>
+        <rect x="4" y="5" width="8" height="1" fill="#4A4A4A"/>
+        <rect x="3" y="8" width="10" height="2" fill="#333333"/>
+        <rect x="2" y="10" width="12" height="2" fill="#2A2A2A"/>
+        <rect x="2" y="12" width="12" height="2" fill="#222222"/>
+        <rect x="2" y="14" width="12" height="2" fill="#1A1A1A"/>
+    </svg>`,
+    bR: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="2" y="0" width="3" height="3" fill="#4A4A4A"/>
+        <rect x="6" y="0" width="4" height="3" fill="#4A4A4A"/>
+        <rect x="11" y="0" width="3" height="3" fill="#4A4A4A"/>
+        <rect x="3" y="0" width="1" height="2" fill="#5A5A5A"/>
+        <rect x="7" y="0" width="2" height="2" fill="#5A5A5A"/>
+        <rect x="12" y="0" width="1" height="2" fill="#5A5A5A"/>
+        <rect x="2" y="3" width="12" height="2" fill="#3A3A3A"/>
+        <rect x="4" y="5" width="8" height="6" fill="#333333"/>
+        <rect x="5" y="5" width="6" height="3" fill="#3A3A3A"/>
+        <rect x="3" y="11" width="10" height="2" fill="#2A2A2A"/>
+        <rect x="2" y="13" width="12" height="3" fill="#222222"/>
+    </svg>`,
+    bB: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="7" y="0" width="2" height="2" fill="#4A4A4A"/>
+        <rect x="6" y="2" width="4" height="2" fill="#3A3A3A"/>
+        <rect x="7" y="3" width="2" height="1" fill="#888888"/>
+        <rect x="5" y="4" width="6" height="3" fill="#333333"/>
+        <rect x="6" y="4" width="4" height="1" fill="#3A3A3A"/>
+        <rect x="4" y="7" width="8" height="3" fill="#2A2A2A"/>
+        <rect x="5" y="7" width="6" height="1" fill="#333333"/>
+        <rect x="3" y="10" width="10" height="2" fill="#222222"/>
+        <rect x="2" y="12" width="12" height="2" fill="#1A1A1A"/>
+        <rect x="2" y="14" width="12" height="2" fill="#151515"/>
+    </svg>`,
+    bN: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="4" y="0" width="4" height="2" fill="#4A4A4A"/>
+        <rect x="3" y="2" width="6" height="2" fill="#3A3A3A"/>
+        <rect x="3" y="2" width="2" height="2" fill="#888888"/>
+        <rect x="4" y="4" width="7" height="2" fill="#333333"/>
+        <rect x="5" y="6" width="7" height="2" fill="#2A2A2A"/>
+        <rect x="4" y="8" width="8" height="2" fill="#222222"/>
+        <rect x="3" y="10" width="9" height="2" fill="#1A1A1A"/>
+        <rect x="3" y="12" width="10" height="2" fill="#151515"/>
+        <rect x="2" y="14" width="12" height="2" fill="#111111"/>
+    </svg>`,
+    bP: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="6" y="2" width="4" height="3" fill="#4A4A4A"/>
+        <rect x="7" y="2" width="2" height="1" fill="#5A5A5A"/>
+        <rect x="5" y="5" width="6" height="4" fill="#3A3A3A"/>
+        <rect x="6" y="5" width="4" height="2" fill="#444444"/>
+        <rect x="4" y="9" width="8" height="2" fill="#2A2A2A"/>
+        <rect x="3" y="11" width="10" height="2" fill="#222222"/>
+        <rect x="3" y="13" width="10" height="3" fill="#1A1A1A"/>
+    </svg>`
 };
 
 // Создать SVG элемент из строки безопасным способом
@@ -84,6 +243,10 @@ const Game = {
     currentHintIndex: 0,
     completedPuzzles: {},  // { packId: Set of puzzle ids }
 
+    // Skin system (classic / pixel)
+    currentSkin: SKINS.classic,
+    skinList: [SKINS.classic, SKINS.pixel],
+
     // AI Mode
     isAIMode: false,
     playerColor: 'w',
@@ -105,9 +268,91 @@ const Game = {
     // Инициализация
     async init() {
         this.chess = new Chess();
+        this.loadSkin();
         await this.loadProgress();
         this.renderPackSelection();
         this.attachEventListeners();
+        this.attachSwipeListeners();
+    },
+
+    // === SKIN SYSTEM ===
+
+    // Load skin from localStorage
+    loadSkin() {
+        const saved = localStorage.getItem('chesskin');
+        if (saved && Object.values(SKINS).includes(saved)) {
+            this.currentSkin = saved;
+        }
+        this.applySkin();
+    },
+
+    // Save skin to localStorage
+    saveSkin() {
+        localStorage.setItem('chesskin', this.currentSkin);
+    },
+
+    // Apply current skin to body
+    applySkin() {
+        // Remove all skin classes
+        document.body.classList.remove('skin-classic', 'skin-pixel');
+        // Add current skin class
+        document.body.classList.add('skin-' + this.currentSkin);
+        // Update skin indicator if exists
+        this.updateSkinIndicator();
+    },
+
+    // Switch to next skin (for swipe)
+    switchSkin(direction) {
+        const currentIndex = this.skinList.indexOf(this.currentSkin);
+        let newIndex;
+
+        if (direction === 'next') {
+            newIndex = (currentIndex + 1) % this.skinList.length;
+        } else {
+            newIndex = (currentIndex - 1 + this.skinList.length) % this.skinList.length;
+        }
+
+        this.currentSkin = this.skinList[newIndex];
+        this.applySkin();
+        this.saveSkin();
+
+        // Re-render board if on game screen to update pieces
+        if (this.currentPuzzle || this.isAIMode || this.isKidsMode) {
+            this.renderBoard();
+        }
+
+        // Play feedback
+        SoundManager.playSelect();
+        TG.haptic('light');
+
+        // Show skin name toast
+        const skinName = this.currentSkin === SKINS.pixel ? '⛏️ Pixel Mode' : '♟️ Classic';
+        this.showStatus(skinName, '');
+
+        Analytics.track('skin_changed', { skin: this.currentSkin });
+    },
+
+    // Update skin indicator dots
+    updateSkinIndicator() {
+        const indicator = document.querySelector('.skin-indicator');
+        if (!indicator) return;
+
+        const dots = indicator.querySelectorAll('.skin-dot');
+        dots.forEach((dot, index) => {
+            if (this.skinList[index] === this.currentSkin) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    },
+
+    // Get piece SVG based on current skin
+    getPieceSVG(pieceKey) {
+        if (this.currentSkin === SKINS.pixel) {
+            return PIECE_SVG_PIXEL[pieceKey] || PIECE_SVG[pieceKey];
+        }
+        return PIECE_SVG[pieceKey];
     },
 
     // Загрузить прогресс (CloudStorage в Telegram, localStorage в браузере)
@@ -298,6 +543,7 @@ const Game = {
     // Начать игру с AI
     startAIGame() {
         this.isAIMode = true;
+        this.isKidsMode = false;  // Сбрасываем Kids режим
         this.playerColor = 'w';
         this.aiThinking = false;
         this.gameOver = false;
@@ -754,6 +1000,7 @@ const Game = {
     // Вернуться к выбору паков
     goBack() {
         TG.haptic('light');
+        this.applyTheme('green'); // Reset to default theme
         this.showScreen('pack-select');
         this.renderPackSelection();
         Analytics.track('back_to_packs');
@@ -933,16 +1180,26 @@ const Game = {
                     const pieceDiv = document.createElement('div');
                     pieceDiv.className = 'piece';
 
-                    // В Kids Mode чёрные пешки — фрукты/овощи (если useFruits !== false)
+                    // Pixel mode: use sprite for pieces
+                    const isPixelMode = this.currentSkin === SKINS.pixel;
+
+                    // Kids Mode: чёрные пешки — фрукты (в любом skin)
                     const pack = PUZZLE_PACKS[this.currentPack];
                     const useFruits = pack && pack.useFruits !== false;
-                    if (this.isKidsMode && useFruits && piece.color === 'b' && piece.type === 'p') {
+                    const showFruit = this.isKidsMode && useFruits &&
+                                      piece.color === 'b' && piece.type === 'p';
+
+                    if (showFruit) {
                         const fruitEmoji = FRUIT_EMOJIS[col % FRUIT_EMOJIS.length];
                         pieceDiv.classList.add('fruit-piece');
                         pieceDiv.textContent = fruitEmoji;
+                    } else if (isPixelMode) {
+                        // Use sprite sheet for ALL pieces in pixel mode
+                        pieceDiv.classList.add('piece-sprite');
+                        pieceDiv.classList.add('sprite-' + piece.color + piece.type);
                     } else {
                         const pieceKey = piece.color + piece.type.toUpperCase();
-                        const svgString = PIECE_SVG[pieceKey];
+                        const svgString = this.getPieceSVG(pieceKey);
                         if (svgString) {
                             const svg = createPieceSVG(svgString);
                             if (svg) {
@@ -1649,12 +1906,20 @@ const Game = {
 
     // Применить цветовую тему
     applyTheme(theme) {
+        // Remove only theme-* classes, preserve skin-* classes
+        const currentClasses = document.body.className.split(' ');
+        const skinClass = currentClasses.find(c => c.startsWith('skin-'));
+
         document.body.className = 'theme-' + (theme || 'green');
+        if (skinClass) {
+            document.body.classList.add(skinClass);
+        }
 
         const themeColors = {
             green: '#4a7c59',
             blue: '#4a6c8c',
-            red: '#7c4a5a'
+            red: '#7c4a5a',
+            kids: '#c06090'
         };
         const metaTheme = document.querySelector('meta[name="theme-color"]');
         if (metaTheme) {
@@ -1876,6 +2141,81 @@ const Game = {
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', handleResize);
         }
+    },
+
+    // Swipe listeners for skin switching on pack selection screen
+    attachSwipeListeners() {
+        const packScreen = document.getElementById('pack-select-screen');
+        if (!packScreen) return;
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        const SWIPE_THRESHOLD = 80; // Minimum swipe distance
+        const SWIPE_RESTRAINT = 100; // Max vertical movement allowed
+
+        const self = this;
+
+        packScreen.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        packScreen.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = Math.abs(touchEndY - touchStartY);
+
+            // Check if it's a horizontal swipe (not scroll)
+            if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < SWIPE_RESTRAINT) {
+                if (deltaX < 0) {
+                    // Swipe left -> next skin
+                    self.switchSkin('next');
+                } else {
+                    // Swipe right -> previous skin
+                    self.switchSkin('prev');
+                }
+            }
+        }, { passive: true });
+
+        // Click on skin indicator dots
+        const skinDots = document.querySelectorAll('.skin-dot');
+        skinDots.forEach(function(dot) {
+            dot.addEventListener('click', function() {
+                const targetSkin = dot.dataset.skin;
+                if (targetSkin && targetSkin !== self.currentSkin) {
+                    self.currentSkin = targetSkin;
+                    self.applySkin();
+                    self.saveSkin();
+
+                    // Re-render board if on game screen
+                    if (self.currentPuzzle || self.isAIMode || self.isKidsMode) {
+                        self.renderBoard();
+                    }
+
+                    SoundManager.playSelect();
+                    TG.haptic('light');
+
+                    const skinName = targetSkin === SKINS.pixel ? '⛏️ Minecraft' : '♟️ Classic';
+                    self.showStatus(skinName, '');
+
+                    Analytics.track('skin_changed', { skin: targetSkin, method: 'click' });
+                }
+            });
+        });
+
+        // Also support keyboard for testing
+        document.addEventListener('keydown', function(e) {
+            // Only on pack selection screen
+            if (!packScreen.classList.contains('active')) return;
+
+            if (e.key === 's' || e.key === 'S') {
+                self.switchSkin('next');
+            }
+        });
     }
 };
 

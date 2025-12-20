@@ -252,8 +252,10 @@ body.theme-kids { --bg-color: #c06090; }
 .pack-footer {
     margin-top: auto;
     padding: clamp(10px, 2vh, 20px);
+    padding-bottom: clamp(30px, 5vh, 50px); /* Extra space for skin indicator */
     text-align: center;
     flex-shrink: 0;
+    position: relative;
 }
 
 .pack-footer p {
@@ -1303,6 +1305,583 @@ body.telegram-app .telegram-link {
         padding-top: max(clamp(8px, 2vh, 20px), env(safe-area-inset-top));
         padding-bottom: max(clamp(8px, 2vh, 20px), env(safe-area-inset-bottom));
     }
+}
+
+/* ========== PIXEL SKIN (Minecraft-style "Bad Mode") ========== */
+
+/* Background: sky on top, grass on bottom */
+body.skin-pixel {
+    background: linear-gradient(to bottom,
+        #7BA4FF 0%,
+        #7BA4FF 45%,
+        #5D8C3E 45%,
+        #5D8C3E 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Minecraft clouds - pack select screen */
+body.skin-pixel #pack-select-screen::before {
+    content: '';
+    position: fixed;
+    top: calc(5vh + 40px);
+    left: 8%;
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        /* Cloud 1 - fluffy irregular shape */
+        10px 0 0 rgba(255, 255, 255, 0.95),
+        20px 0 0 rgba(255, 255, 255, 0.95),
+        30px 0 0 rgba(255, 255, 255, 0.95),
+        40px 0 0 rgba(255, 255, 255, 0.95),
+        50px 0 0 rgba(255, 255, 255, 0.95),
+        -10px 10px 0 rgba(255, 255, 255, 0.95),
+        0 10px 0 rgba(255, 255, 255, 0.95),
+        10px 10px 0 rgba(255, 255, 255, 0.95),
+        20px 10px 0 rgba(255, 255, 255, 0.95),
+        30px 10px 0 rgba(255, 255, 255, 0.95),
+        40px 10px 0 rgba(255, 255, 255, 0.95),
+        50px 10px 0 rgba(255, 255, 255, 0.95),
+        60px 10px 0 rgba(255, 255, 255, 0.95),
+        -10px 20px 0 rgba(255, 255, 255, 0.92),
+        0 20px 0 rgba(255, 255, 255, 0.92),
+        10px 20px 0 rgba(255, 255, 255, 0.92),
+        20px 20px 0 rgba(255, 255, 255, 0.92),
+        30px 20px 0 rgba(255, 255, 255, 0.92),
+        40px 20px 0 rgba(255, 255, 255, 0.92),
+        50px 20px 0 rgba(255, 255, 255, 0.92),
+        10px -10px 0 rgba(255, 255, 255, 0.93),
+        20px -10px 0 rgba(255, 255, 255, 0.93),
+        30px -10px 0 rgba(255, 255, 255, 0.93),
+        /* Cloud 2 - bumpy top */
+        calc(42vw) calc(8vh) rgba(255, 255, 255, 0.9),
+        calc(42vw + 10px) calc(8vh) rgba(255, 255, 255, 0.9),
+        calc(42vw + 20px) calc(8vh) rgba(255, 255, 255, 0.9),
+        calc(42vw + 30px) calc(8vh) rgba(255, 255, 255, 0.9),
+        calc(42vw - 10px) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw + 10px) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw + 20px) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw + 30px) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw + 40px) calc(8vh + 10px) rgba(255, 255, 255, 0.9),
+        calc(42vw) calc(8vh + 20px) rgba(255, 255, 255, 0.88),
+        calc(42vw + 10px) calc(8vh + 20px) rgba(255, 255, 255, 0.88),
+        calc(42vw + 20px) calc(8vh + 20px) rgba(255, 255, 255, 0.88),
+        calc(42vw + 30px) calc(8vh + 20px) rgba(255, 255, 255, 0.88),
+        calc(42vw + 10px) calc(8vh - 10px) rgba(255, 255, 255, 0.88),
+        calc(42vw + 20px) calc(8vh - 10px) rgba(255, 255, 255, 0.88),
+        /* Cloud 3 - small fluffy */
+        calc(72vw) calc(12vh) rgba(255, 255, 255, 0.85),
+        calc(72vw + 10px) calc(12vh) rgba(255, 255, 255, 0.85),
+        calc(72vw + 20px) calc(12vh) rgba(255, 255, 255, 0.85),
+        calc(72vw - 10px) calc(12vh + 10px) rgba(255, 255, 255, 0.85),
+        calc(72vw) calc(12vh + 10px) rgba(255, 255, 255, 0.85),
+        calc(72vw + 10px) calc(12vh + 10px) rgba(255, 255, 255, 0.85),
+        calc(72vw + 20px) calc(12vh + 10px) rgba(255, 255, 255, 0.85),
+        calc(72vw + 30px) calc(12vh + 10px) rgba(255, 255, 255, 0.85),
+        calc(72vw) calc(12vh + 20px) rgba(255, 255, 255, 0.82),
+        calc(72vw + 10px) calc(12vh + 20px) rgba(255, 255, 255, 0.82),
+        calc(72vw + 20px) calc(12vh + 20px) rgba(255, 255, 255, 0.82),
+        calc(72vw + 10px) calc(12vh - 10px) rgba(255, 255, 255, 0.83),
+        /* Cloud 4 - tiny puff */
+        calc(88vw) calc(6vh) rgba(255, 255, 255, 0.8),
+        calc(88vw + 10px) calc(6vh) rgba(255, 255, 255, 0.8),
+        calc(88vw) calc(6vh + 10px) rgba(255, 255, 255, 0.8),
+        calc(88vw + 10px) calc(6vh + 10px) rgba(255, 255, 255, 0.8),
+        calc(88vw + 20px) calc(6vh + 10px) rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    z-index: 0;
+    animation: mc-clouds 80s linear infinite;
+}
+
+@keyframes mc-clouds {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-120px); }
+}
+
+/* Minecraft trees - pack select screen (bigger, raised up ~15vh) */
+body.skin-pixel #pack-select-screen::after {
+    content: '';
+    position: fixed;
+    bottom: calc(15vh + 10px);
+    left: 3%;
+    width: 12px;
+    height: 12px;
+    background: #5D4037;
+    box-shadow:
+        /* Tree 1 - left, tall */
+        0 -12px 0 #5D4037,
+        0 -24px 0 #5D4037,
+        0 -36px 0 #5D4037,
+        -24px -48px 0 #2E7D32,
+        -12px -48px 0 #2E7D32,
+        0 -48px 0 #2E7D32,
+        12px -48px 0 #2E7D32,
+        24px -48px 0 #2E7D32,
+        -24px -60px 0 #43A047,
+        -12px -60px 0 #43A047,
+        0 -60px 0 #43A047,
+        12px -60px 0 #43A047,
+        24px -60px 0 #43A047,
+        -12px -72px 0 #4CAF50,
+        0 -72px 0 #4CAF50,
+        12px -72px 0 #4CAF50,
+        0 -84px 0 #66BB6A,
+        /* Tree 2 - left-center, short, slightly lower */
+        calc(18vw) calc(5vh) #4A3728,
+        calc(18vw) calc(5vh - 12px) #4A3728,
+        calc(18vw) calc(5vh - 24px) #4A3728,
+        calc(18vw - 12px) calc(5vh - 36px) #3B7D2A,
+        calc(18vw) calc(5vh - 36px) #3B7D2A,
+        calc(18vw + 12px) calc(5vh - 36px) #3B7D2A,
+        calc(18vw - 12px) calc(5vh - 48px) #4CAF50,
+        calc(18vw) calc(5vh - 48px) #4CAF50,
+        calc(18vw + 12px) calc(5vh - 48px) #4CAF50,
+        calc(18vw) calc(5vh - 60px) #5DC55D,
+        /* Tree 3 - center-right, medium */
+        calc(72vw) calc(3vh) #5D4037,
+        calc(72vw) calc(3vh - 12px) #5D4037,
+        calc(72vw) calc(3vh - 24px) #5D4037,
+        calc(72vw - 24px) calc(3vh - 36px) #2E7D32,
+        calc(72vw - 12px) calc(3vh - 36px) #2E7D32,
+        calc(72vw) calc(3vh - 36px) #2E7D32,
+        calc(72vw + 12px) calc(3vh - 36px) #2E7D32,
+        calc(72vw + 24px) calc(3vh - 36px) #2E7D32,
+        calc(72vw - 12px) calc(3vh - 48px) #43A047,
+        calc(72vw) calc(3vh - 48px) #43A047,
+        calc(72vw + 12px) calc(3vh - 48px) #43A047,
+        calc(72vw) calc(3vh - 60px) #66BB6A,
+        /* Tree 4 - right edge, tall, slightly higher */
+        calc(90vw) calc(-2vh) #4A3728,
+        calc(90vw) calc(-2vh - 12px) #4A3728,
+        calc(90vw) calc(-2vh - 24px) #4A3728,
+        calc(90vw) calc(-2vh - 36px) #4A3728,
+        calc(90vw - 24px) calc(-2vh - 48px) #2E7D32,
+        calc(90vw - 12px) calc(-2vh - 48px) #2E7D32,
+        calc(90vw) calc(-2vh - 48px) #2E7D32,
+        calc(90vw + 12px) calc(-2vh - 48px) #2E7D32,
+        calc(90vw + 24px) calc(-2vh - 48px) #2E7D32,
+        calc(90vw - 24px) calc(-2vh - 60px) #43A047,
+        calc(90vw - 12px) calc(-2vh - 60px) #43A047,
+        calc(90vw) calc(-2vh - 60px) #43A047,
+        calc(90vw + 12px) calc(-2vh - 60px) #43A047,
+        calc(90vw + 24px) calc(-2vh - 60px) #43A047,
+        calc(90vw - 12px) calc(-2vh - 72px) #4CAF50,
+        calc(90vw) calc(-2vh - 72px) #4CAF50,
+        calc(90vw + 12px) calc(-2vh - 72px) #4CAF50,
+        calc(90vw) calc(-2vh - 84px) #66BB6A;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Minecraft clouds - game screen (lowered ~15vh, detailed) */
+body.skin-pixel #game-screen::before {
+    content: '';
+    position: fixed;
+    top: calc(8vh + 30px);
+    left: 3%;
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow:
+        /* Cloud 1 - fluffy left */
+        10px 0 0 rgba(255, 255, 255, 0.92),
+        20px 0 0 rgba(255, 255, 255, 0.92),
+        30px 0 0 rgba(255, 255, 255, 0.92),
+        -10px 10px 0 rgba(255, 255, 255, 0.92),
+        0 10px 0 rgba(255, 255, 255, 0.92),
+        10px 10px 0 rgba(255, 255, 255, 0.92),
+        20px 10px 0 rgba(255, 255, 255, 0.92),
+        30px 10px 0 rgba(255, 255, 255, 0.92),
+        40px 10px 0 rgba(255, 255, 255, 0.92),
+        0 20px 0 rgba(255, 255, 255, 0.9),
+        10px 20px 0 rgba(255, 255, 255, 0.9),
+        20px 20px 0 rgba(255, 255, 255, 0.9),
+        30px 20px 0 rgba(255, 255, 255, 0.9),
+        10px -10px 0 rgba(255, 255, 255, 0.9),
+        20px -10px 0 rgba(255, 255, 255, 0.9),
+        /* Cloud 2 - right side bumpy */
+        calc(78vw) calc(5vh) rgba(255, 255, 255, 0.88),
+        calc(78vw + 10px) calc(5vh) rgba(255, 255, 255, 0.88),
+        calc(78vw + 20px) calc(5vh) rgba(255, 255, 255, 0.88),
+        calc(78vw + 30px) calc(5vh) rgba(255, 255, 255, 0.88),
+        calc(78vw - 10px) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw + 10px) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw + 20px) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw + 30px) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw + 40px) calc(5vh + 10px) rgba(255, 255, 255, 0.88),
+        calc(78vw) calc(5vh + 20px) rgba(255, 255, 255, 0.85),
+        calc(78vw + 10px) calc(5vh + 20px) rgba(255, 255, 255, 0.85),
+        calc(78vw + 20px) calc(5vh + 20px) rgba(255, 255, 255, 0.85),
+        calc(78vw + 30px) calc(5vh + 20px) rgba(255, 255, 255, 0.85),
+        calc(78vw + 10px) calc(5vh - 10px) rgba(255, 255, 255, 0.86),
+        calc(78vw + 20px) calc(5vh - 10px) rgba(255, 255, 255, 0.86);
+    pointer-events: none;
+    z-index: 0;
+    animation: mc-clouds-game 70s linear infinite;
+}
+
+@keyframes mc-clouds-game {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-80px); }
+}
+
+/* Minecraft trees - game screen (raised up ~15vh) */
+body.skin-pixel #game-screen::after {
+    content: '';
+    position: fixed;
+    bottom: calc(15vh + 5px);
+    left: 2%;
+    width: 10px;
+    height: 10px;
+    background: #5D4037;
+    box-shadow:
+        /* Tree 1 - far left */
+        0 -10px 0 #5D4037,
+        0 -20px 0 #5D4037,
+        -20px -30px 0 #2E7D32,
+        -10px -30px 0 #2E7D32,
+        0 -30px 0 #2E7D32,
+        10px -30px 0 #2E7D32,
+        20px -30px 0 #2E7D32,
+        -10px -40px 0 #43A047,
+        0 -40px 0 #43A047,
+        10px -40px 0 #43A047,
+        0 -50px 0 #66BB6A,
+        /* Tree 2 - right side, taller */
+        calc(92vw) calc(3vh) #4A3728,
+        calc(92vw) calc(3vh - 10px) #4A3728,
+        calc(92vw) calc(3vh - 20px) #4A3728,
+        calc(92vw) calc(3vh - 30px) #4A3728,
+        calc(92vw - 20px) calc(3vh - 40px) #2E7D32,
+        calc(92vw - 10px) calc(3vh - 40px) #2E7D32,
+        calc(92vw) calc(3vh - 40px) #2E7D32,
+        calc(92vw + 10px) calc(3vh - 40px) #2E7D32,
+        calc(92vw + 20px) calc(3vh - 40px) #2E7D32,
+        calc(92vw - 20px) calc(3vh - 50px) #43A047,
+        calc(92vw - 10px) calc(3vh - 50px) #43A047,
+        calc(92vw) calc(3vh - 50px) #43A047,
+        calc(92vw + 10px) calc(3vh - 50px) #43A047,
+        calc(92vw + 20px) calc(3vh - 50px) #43A047,
+        calc(92vw - 10px) calc(3vh - 60px) #4CAF50,
+        calc(92vw) calc(3vh - 60px) #4CAF50,
+        calc(92vw + 10px) calc(3vh - 60px) #4CAF50,
+        calc(92vw) calc(3vh - 70px) #66BB6A,
+        /* Tree 3 - center-left, small shrub */
+        calc(15vw) calc(5vh) #5D4037,
+        calc(15vw) calc(5vh - 10px) #5D4037,
+        calc(15vw - 10px) calc(5vh - 20px) #3B7D2A,
+        calc(15vw) calc(5vh - 20px) #3B7D2A,
+        calc(15vw + 10px) calc(5vh - 20px) #3B7D2A,
+        calc(15vw) calc(5vh - 30px) #4CAF50;
+    pointer-events: none;
+    z-index: 0;
+}
+
+body.skin-pixel #app {
+    background: transparent;
+    position: relative;
+    z-index: 1;
+}
+
+/* Minecraft-style 3D button mixin */
+body.skin-pixel .pack-card,
+body.skin-pixel .control-btn,
+body.skin-pixel .menu-item,
+body.skin-pixel #hint-block,
+body.skin-pixel .modal-content,
+body.skin-pixel .btn-primary,
+body.skin-pixel .btn-secondary {
+    background: #C6C6C6 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset -2px -4px 0 #555555,
+        inset 2px 2px 0 #FFFFFF !important;
+    color: #3F3F3F !important;
+}
+
+body.skin-pixel .pack-card:active,
+body.skin-pixel .control-btn:active,
+body.skin-pixel .menu-item:active,
+body.skin-pixel .btn-primary:active,
+body.skin-pixel .btn-secondary:active {
+    box-shadow:
+        inset 2px 4px 0 #555555,
+        inset -2px -2px 0 #FFFFFF !important;
+    transform: none !important;
+}
+
+/* Pack cards text */
+body.skin-pixel .pack-card-name {
+    color: #3F3F3F !important;
+    font-family: monospace;
+}
+
+body.skin-pixel .pack-card-count {
+    color: #555555 !important;
+}
+
+/* Board: wood + dirt */
+body.skin-pixel #board {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 4px solid #373737;
+    image-rendering: pixelated;
+}
+
+body.skin-pixel .cell {
+    border-radius: 0 !important;
+}
+
+body.skin-pixel .cell.light {
+    background-color: #BC9862; /* Wood planks */
+}
+
+body.skin-pixel .cell.dark {
+    background-color: #8B5E3C; /* Dirt */
+}
+
+/* Pieces */
+body.skin-pixel .piece {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: none !important;
+}
+
+body.skin-pixel .piece svg {
+    image-rendering: pixelated;
+}
+
+/* Pixel sprite pieces - 600x200px sprite, 6 cols x 2 rows */
+body.skin-pixel .piece-sprite {
+    background-image: url('../assets/pieces-pixel.png');
+    background-repeat: no-repeat;
+    background-size: 600% 200%;
+    width: 100% !important;
+    height: 100% !important;
+    transform: scale(1.05);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+body.skin-pixel .piece-sprite svg {
+    display: none;
+}
+
+/* Sprite layout: King(0), Queen(1), Bishop(2), Knight(3), Rook(4), Pawn(5)
+   With bg-size 600%: position = col * 20% (since 100%/5 gaps = 20% per step) */
+/* White pieces (top row) */
+body.skin-pixel .piece-sprite.sprite-wk { background-position: 0% 0%; }
+body.skin-pixel .piece-sprite.sprite-wq { background-position: 20% 0%; }
+body.skin-pixel .piece-sprite.sprite-wb { background-position: 40% 0%; }
+body.skin-pixel .piece-sprite.sprite-wn { background-position: 60% 0%; }
+body.skin-pixel .piece-sprite.sprite-wr { background-position: 80% 0%; }
+body.skin-pixel .piece-sprite.sprite-wp { background-position: 100% 10%; }
+
+/* Black pieces (bottom row) */
+body.skin-pixel .piece-sprite.sprite-bk { background-position: 0% 100%; }
+body.skin-pixel .piece-sprite.sprite-bq { background-position: 20% 100%; }
+body.skin-pixel .piece-sprite.sprite-bb { background-position: 40% 100%; }
+body.skin-pixel .piece-sprite.sprite-bn { background-position: 60% 100%; }
+body.skin-pixel .piece-sprite.sprite-br { background-position: 80% 100%; }
+body.skin-pixel .piece-sprite.sprite-bp { background-position: 100% 110%; }
+
+/* Minecraft pixel font */
+body.skin-pixel {
+    --mc-font: 'Press Start 2P', monospace;
+}
+
+/* Header text with shadow */
+body.skin-pixel #puzzle-title {
+    color: #FFFFFF !important;
+    text-shadow: 2px 2px 0 #3F3F3F;
+    font-family: var(--mc-font);
+    font-size: clamp(12px, 2.5vh, 18px);
+}
+
+body.skin-pixel #level-number,
+body.skin-pixel #progress {
+    color: #FFFFFF !important;
+    text-shadow: 1px 1px 0 #3F3F3F;
+    font-family: var(--mc-font);
+    font-size: 8px;
+    letter-spacing: 0;
+}
+
+body.skin-pixel .pack-subtitle {
+    color: #FFFFFF !important;
+    text-shadow: 2px 2px 0 #3F3F3F;
+    font-family: var(--mc-font);
+    font-size: 10px;
+}
+
+/* Logo */
+body.skin-pixel .pack-logo-icon {
+    text-shadow: 3px 3px 0 #3F3F3F;
+    color: #FFFFFF !important;
+}
+
+body.skin-pixel .pack-logo-text {
+    font-family: var(--mc-font);
+    letter-spacing: 0;
+    text-shadow: 3px 3px 0 #3F3F3F;
+    color: #FFFFFF !important;
+    font-size: clamp(14px, 3vh, 20px);
+}
+
+/* Footer text */
+body.skin-pixel .pack-footer p {
+    color: #FFFFFF !important;
+    text-shadow: 1px 1px 0 #3F3F3F;
+}
+
+/* Telegram link as MC button */
+body.skin-pixel .telegram-link {
+    background: #C6C6C6 !important;
+    color: #3F3F3F !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset -2px -4px 0 #555555,
+        inset 2px 2px 0 #FFFFFF !important;
+}
+
+/* Back/Menu buttons */
+body.skin-pixel #back-btn svg,
+body.skin-pixel #menu-btn .dot {
+    fill: #FFFFFF;
+}
+
+body.skin-pixel #menu-btn .dot {
+    background: #FFFFFF;
+}
+
+/* Control buttons icons */
+body.skin-pixel .control-btn svg {
+    fill: #3F3F3F;
+}
+
+body.skin-pixel .control-btn .btn-emoji {
+    filter: none;
+}
+
+/* Hint block */
+body.skin-pixel #hint-text {
+    color: #3F3F3F !important;
+    font-family: monospace;
+}
+
+body.skin-pixel .hint-avatar {
+    filter: none;
+}
+
+/* Modals */
+body.skin-pixel .modal-content h2,
+body.skin-pixel .modal-content h3 {
+    color: #3F3F3F !important;
+    font-family: monospace;
+}
+
+body.skin-pixel .modal-content p {
+    color: #555555 !important;
+}
+
+/* Coordinates */
+body.skin-pixel .coord {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+/* Menu overlay */
+body.skin-pixel #menu-overlay {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+body.skin-pixel #close-menu {
+    color: #FFFFFF;
+    text-shadow: 2px 2px 0 #3F3F3F;
+}
+
+/* Game screen in Minecraft mode - override theme background */
+body.skin-pixel.theme-green,
+body.skin-pixel.theme-blue,
+body.skin-pixel.theme-red,
+body.skin-pixel.theme-kids {
+    background: linear-gradient(to bottom,
+        #7BA4FF 0%,
+        #7BA4FF 40%,
+        #5D8C3E 40%,
+        #5D8C3E 100%) !important;
+}
+
+/* Speech bubble hint in MC style */
+body.skin-pixel #hint-block.speech-mode {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.skin-pixel #hint-block.speech-mode #hint-text {
+    background: #C6C6C6 !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset -2px -4px 0 #555555,
+        inset 2px 2px 0 #FFFFFF !important;
+}
+
+body.skin-pixel #hint-block.speech-mode #hint-text::before {
+    border-right-color: #C6C6C6;
+}
+
+body.skin-pixel #hint-block.speech-mode .hint-avatar {
+    background: #C6C6C6 !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset -1px -2px 0 #555555,
+        inset 1px 1px 0 #FFFFFF !important;
+}
+
+/* Win mode in MC style */
+body.skin-pixel #hint-block.win-mode #hint-text {
+    background: #C6C6C6 !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset -2px -4px 0 #555555,
+        inset 2px 2px 0 #FFFFFF !important;
+}
+
+/* Skin indicator (shows current skin) - clickable */
+.skin-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+}
+
+.skin-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.skin-dot:hover {
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+.skin-dot.active {
+    background: rgba(255, 255, 255, 0.95);
+    transform: scale(1.2);
+}
+
+body.skin-pixel .skin-dot {
+    border-radius: 0;
 }
 
 /* ========== DARK MODE (blue light filter) ========== */

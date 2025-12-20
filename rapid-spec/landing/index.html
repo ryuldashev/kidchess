@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidChess — AI-тренер по шахматам для детей 3-8 лет</title>
+    <meta name="description" content="Первое приложение для обучения шахматам малышей. AI объясняет ходы на языке ребёнка.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Floating chess pieces decoration -->
+    <div class="floating-pieces" aria-hidden="true">
+        <span class="piece piece-1">♞</span>
+        <span class="piece piece-2">♛</span>
+        <span class="piece piece-3">♜</span>
+        <span class="piece piece-4">♝</span>
+        <span class="piece piece-5">♚</span>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <nav class="nav">
+            <div class="logo">
+                <span class="logo-icon">♟</span>
+                <span class="logo-text">KidChess</span>
+            </div>
+        </nav>
+
+        <div class="hero-content">
+            <div class="badge">
+                <span class="badge-icon">✨</span>
+                <span>Для детей от 3 лет</span>
+            </div>
+
+            <h1 class="hero-title">
+                Ваш ребёнок научится шахматам,
+                <span class="highlight">пока вы пьёте кофе</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                AI-тренер объясняет каждый ход простым языком:
+                <em>"Конь прыгает буквой Г, как лошадка!"</em>
+            </p>
+
+            <div class="cta-buttons">
+                <a href="../../index.html" class="btn-primary btn-large">
+                    <span class="btn-icon">♟</span>
+                    <span>Играть сейчас</span>
+                    <span class="btn-arrow">→</span>
+                </a>
+                <p class="form-note">Бесплатно. Без регистрации. Сразу в браузере.</p>
+            </div>
+
+            <div class="social-proof">
+                <div class="live-badge">
+                    <span class="pulse-dot"></span>
+                    <span>LIVE</span>
+                </div>
+                <div class="avatars">
+                    <div class="avatar" style="--delay: 0">👧</div>
+                    <div class="avatar" style="--delay: 1">👦</div>
+                    <div class="avatar" style="--delay: 2">👧</div>
+                    <div class="avatar" style="--delay: 3">👦</div>
+                </div>
+                <p><strong>v1.0</strong> — паки задач, AI-подсказки, игра с компьютером</p>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="phone-mockup">
+                <div class="phone-screen">
+                    <div class="app-header">
+                        <span class="stars">⭐⭐⭐</span>
+                        <span class="level">Уровень 3</span>
+                    </div>
+                    <div class="chess-board-mini">
+                        <div class="board-grid">
+                            <!-- Simplified 4x4 board -->
+                            <div class="cell light"></div>
+                            <div class="cell dark"></div>
+                            <div class="cell light"></div>
+                            <div class="cell dark"><span class="chess-piece">♚</span></div>
+                            <div class="cell dark"></div>
+                            <div class="cell light"></div>
+                            <div class="cell dark"></div>
+                            <div class="cell light"></div>
+                            <div class="cell light"></div>
+                            <div class="cell dark"><span class="chess-piece white">♕</span></div>
+                            <div class="cell light"></div>
+                            <div class="cell dark"></div>
+                            <div class="cell dark"></div>
+                            <div class="cell light"><span class="chess-piece white">♖</span></div>
+                            <div class="cell dark"></div>
+                            <div class="cell light"></div>
+                        </div>
+                    </div>
+                    <div class="hint-bubble">
+                        <span class="hint-avatar">🦊</span>
+                        <p>Ферзь может съесть короля! Потяни её!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title">Почему дети <span class="wiggle">обожают</span> KidChess</h2>
+
+        <div class="features-grid">
+            <div class="feature-card" style="--delay: 0">
+                <div class="feature-icon">🎯</div>
+                <h3>Адаптивная сложность</h3>
+                <p>Задачи подстраиваются под уровень ребёнка. Всегда интересно, никогда не скучно.</p>
+            </div>
+
+            <div class="feature-card" style="--delay: 1">
+                <div class="feature-icon">💬</div>
+                <h3>AI объясняет просто</h3>
+                <p>Не "диагональ f3-h5", а "Слон бежит наискосок и съедает пешку!"</p>
+            </div>
+
+            <div class="feature-card" style="--delay: 2">
+                <div class="feature-icon">🎮</div>
+                <h3>Это игра, не урок</h3>
+                <p>Звёзды, награды, весёлые звуки. Ребёнок сам просит "ещё задачку!"</p>
+            </div>
+
+            <div class="feature-card" style="--delay: 3">
+                <div class="feature-icon">📊</div>
+                <h3>Прогресс для родителей</h3>
+                <p>Видьте как ребёнок растёт. Отчёты раз в неделю на email.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="how-it-works">
+        <h2 class="section-title">Как это <span class="underline">работает</span></h2>
+
+        <div class="steps">
+            <div class="step" style="--delay: 0">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Ребёнок открывает приложение</h3>
+                    <p>Выбирает персонажа-помощника. Лисёнок? Мишка? Котик?</p>
+                </div>
+            </div>
+
+            <div class="step" style="--delay: 1">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Решает шахматные задачи</h3>
+                    <p>Начинаем с простых. "Съешь коня!" — и тянет фигуру пальцем.</p>
+                </div>
+            </div>
+
+            <div class="step" style="--delay: 2">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>AI помогает при ошибке</h3>
+                    <p>Не ругает, а объясняет. "Смотри, если пойти сюда — король убежит!"</p>
+                </div>
+            </div>
+
+            <div class="step" style="--delay: 3">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Получает звёзды и растёт</h3>
+                    <p>5 минут в день — через месяц ставит маты!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+        <h2 class="section-title">Простые <span class="highlight-box">цены</span></h2>
+
+        <div class="pricing-cards">
+            <div class="pricing-card free">
+                <div class="pricing-header">
+                    <h3>Бесплатно</h3>
+                    <div class="price">$0</div>
+                </div>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 5 задач в день</li>
+                    <li><span class="check">✓</span> Базовые объяснения</li>
+                    <li><span class="check">✓</span> 1 ребёнок</li>
+                </ul>
+                <a href="../../index.html" class="btn-secondary">
+                    Начать бесплатно
+                </a>
+            </div>
+
+            <div class="pricing-card premium">
+                <div class="popular-badge">Популярный</div>
+                <div class="pricing-header">
+                    <h3>Premium</h3>
+                    <div class="price">$3.99<span>/мес</span></div>
+                </div>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> Безлимит задач</li>
+                    <li><span class="check">✓</span> AI-объяснения каждого хода</li>
+                    <li><span class="check">✓</span> До 3 детей</li>
+                    <li><span class="check">✓</span> Отчёты для родителей</li>
+                    <li><span class="check">✓</span> Без рекламы</li>
+                </ul>
+                <a href="../../index.html" class="btn-primary full-width">
+                    Начать играть
+                </a>
+                <p class="pricing-note">Premium скоро! Сейчас всё бесплатно.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <h2 class="section-title">Частые <span class="dots">вопросы</span></h2>
+
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>С какого возраста можно начинать?</summary>
+                <p>С 3 лет! Мы специально разработали интерфейс для самых маленьких. Большие фигуры, простые задачи, понятные объяснения.</p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Нужно ли родителям сидеть рядом?</summary>
+                <p>Нет! AI-помощник объясняет всё сам. Вы можете заниматься своими делами, пока ребёнок играет. Но если хотите — играйте вместе, это тоже весело!</p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Мой ребёнок не знает правил. Это проблема?</summary>
+                <p>Нет! Мы начинаем с самых основ. Сначала — как ходят фигуры. Потом — простые задачи. Постепенно усложняем.</p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Безопасно ли для детей?</summary>
+                <p>Абсолютно. Никакой рекламы, никаких покупок внутри приложения, никакого общения с другими людьми. Только ребёнок и шахматы.</p>
+            </details>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="cta-content">
+            <h2>Готовы начать?</h2>
+            <p>Без регистрации. Без оплаты. Открой и играй.</p>
+
+            <a href="../../index.html" class="btn-primary btn-large">
+                <span class="btn-icon">♟</span>
+                <span>Открыть KidChess</span>
+                <span class="btn-arrow">→</span>
+            </a>
+        </div>
+
+        <div class="chess-decoration">♟♞♝♜♛♚</div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="logo">
+                <span class="logo-icon">♟</span>
+                <span class="logo-text">KidChess</span>
+            </div>
+            <p class="footer-tagline">Шахматы для малышей. С любовью и AI.</p>
+            <div class="footer-links">
+                <a href="mailto:hello@kidchess.app">hello@kidchess.app</a>
+                <span class="footer-divider">·</span>
+                <a href="pitch.html" class="investor-link">Для инвесторов</a>
+            </div>
+            <p class="copyright">© 2025 KidChess. Сделано для наших детей.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Animate elements on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.feature-card, .step, .pricing-card, .faq-item').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

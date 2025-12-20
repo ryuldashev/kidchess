@@ -1,0 +1,21 @@
+app = 'kidchess-umami'
+primary_region = 'ams'
+
+[build]
+  image = 'ghcr.io/umami-software/umami:postgresql-latest'
+
+[env]
+  DATABASE_TYPE = 'postgresql'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'suspend'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
